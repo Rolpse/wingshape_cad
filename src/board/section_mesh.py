@@ -86,9 +86,11 @@ def generate_section_loft_mesh(
         for j in range(ring_size):
             j2 = (j + 1) % ring_size
             if end_index == 0:
-                faces.append((cap_id, base + j2, base + j))
-            else:
+                # Nose cap perimeter edge must oppose the first loft ring.
                 faces.append((cap_id, base + j, base + j2))
+            else:
+                # Tail cap perimeter edge must oppose the last loft ring.
+                faces.append((cap_id, base + j2, base + j))
 
     mesh = SectionLoftMesh(tuple(vertices), tuple(faces))
     if not mesh.is_watertight:
