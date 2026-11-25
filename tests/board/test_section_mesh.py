@@ -17,6 +17,7 @@ class SectionLoftMeshTests(unittest.TestCase):
         ], lateral_samples=24)
         self.assertTrue(mesh.is_watertight)
         self.assertGreater(mesh.volume_litres, 0)
+        self.assertGreater(mesh.signed_volume_mm3(), 0)
 
     def test_independent_asymmetric_profiles_are_lofted(self):
         profile = TransverseProfile("v", left_depth_mm=2, right_depth_mm=5)
