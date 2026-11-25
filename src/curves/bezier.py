@@ -286,10 +286,29 @@ class BezierCurve:
             return (p0, _add(p0, _scale(tangent_a, alpha)),
                     _sub(p3, _scale(tangent_b, beta)), p3)
 
+        def point_segment_distance(point: Point, start: Point, end: Point) -> float:
+            edge = _sub(end, start)
+            denom = sum(v * v for v in edge)
+            if denom <= 1e-24:
+                return _length(_sub(point, start))
+            offset = _sub(point, start)
+            t = max(0.0, min(1.0, sum(a*b for a, b in zip(offset, edge)) / denom))
+            return _length(_sub(point, _add(start, _scale(edge, t))))
+
+        def polyline_distance(point: Point, polyline: list[Point]) -> float:
+            return min(point_segment_distance(point, a, b)
+                       for a, b in zip(polyline, polyline[1:]))
+
         def errors(alpha: float, beta: float) -> tuple[float, float]:
             controls = candidate(alpha, beta)
-            distances = [_length(_sub(evaluate_cubic(*controls, i / samples_per_segment), target))
-                         for i, target in enumerate(source)]
+            fitted = [evaluate_cubic(*controls, i / samples_per_segment)
+                      for i in range(samples_per_segment + 1)]
+            # Approximate a symmetric discrete Hausdorff distance between the
+            # sampled source and fitted polylines. This is geometric rather
+            # than parameter-correspondence error, so exact de Casteljau splits
+            # are not penalized merely because their local parameters differ.
+            distances = ([polyline_distance(p, fitted) for p in source]
+                         + [polyline_distance(p, source) for p in fitted])
             return sum(d*d for d in distances), max(distances)
 
         # Exact inverse of de Casteljau subdivision. When the removed anchor
