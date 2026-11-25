@@ -18,6 +18,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 ## Current prototype
 
 - Parametric board station model and closed triangle mesh; OBJ and binary STL export.
+- Editable cubic Bezier curve model with stable anchors, two handles, continuity modes and exact curve-preserving insertion (feature branch pending review).
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
@@ -29,7 +30,7 @@ These are prototypes, not a complete interactive CAD application, validated CAM 
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
 - Hydrodynamics calculations: src/hydrodynamics/performance.py
-- Tests: tests/board, tests/cam, tests/hydrodynamics
+- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/curves
 - Engineering contracts/reviews: docs/engineering and docs/board
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
@@ -44,7 +45,7 @@ python -m unittest discover -v
 
 ## Transfer completeness
 
-Core source, example geometry, test suites and a subset of engineering/quality documentation have been imported. Original detailed CAM/CFD review documents, benchmark YAML files, CAM machine-profile/postprocessor documentation and some remaining supporting artifacts are still to be transferred and cross-checked.
+Core source, example geometry, test suites and a subset of engineering/quality documentation have been imported. The Bezier control-point model is in feature/bezier-control-point-model and awaits CI/review before merge. Original detailed CAM/CFD review documents, benchmark YAML files, CAM machine-profile/postprocessor documentation and some remaining supporting artifacts are still to be transferred and cross-checked.
 
 ## Safety
 
