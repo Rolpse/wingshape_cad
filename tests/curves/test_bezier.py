@@ -1,6 +1,6 @@
 import unittest
 
-from src.curves.bezier import Anchor, BezierCurve, Continuity
+from src.curves.bezier import (Anchor, BezierCurve, Continuity,\n                               CurveFitToleranceError)
 
 
 def sample_curve():
@@ -82,6 +82,38 @@ class BezierControlPointTests(unittest.TestCase):
         curve = sample_curve().insert_on_segment(0, 0.5, "middle")
         deleted = curve.delete_anchor("middle")
         self.assertEqual([a.id for a in deleted.anchors], ["A", "B"])
+
+
+    def test_bounded_delete_restores_exactly_split_curve(self):
+        original = sample_curve()
+        split = original.insert_on_segment(0, 0.43, "middle")
+        restored, report = split.delete_anchor_bounded("middle", 1e-7)
+        self.assertTrue(report.accepted)
+        self.assertLessEqual(report.max_sampled_deviation, 1e-7)
+        self.assertEqual([a.id for a in restored.anchors], ["A", "B"])
+        for i in range(101):
+            actual = restored.evaluate(0, i / 100)
+            expected = original.evaluate(0, i / 100)
+            for a, b in zip(actual, expected):
+                self.assertAlmostEqual(a, b, places=6)
+
+    def test_bounded_delete_rejects_shape_change_over_tolerance(self):
+        curve = BezierCurve((
+            Anchor("A", (0, 0), (0, 0), (20, 0)),
+            Anchor("M", (40, 35), (30, 35), (50, 35)),
+            Anchor("B", (100, 0), (90, 0), (100, 0)),
+        ))
+        with self.assertRaises(CurveFitToleranceError) as caught:
+            curve.delete_anchor_bounded("M", 0.01)
+        self.assertFalse(caught.exception.report.accepted)
+        self.assertGreater(caught.exception.report.max_sampled_deviation, 0.01)
+
+    def test_bounded_delete_validates_tolerance_and_sample_count(self):
+        curve = sample_curve().insert_on_segment(0, 0.5, "middle")
+        with self.assertRaises(ValueError):
+            curve.delete_anchor_bounded("middle", -1)
+        with self.assertRaises(ValueError):
+            curve.delete_anchor_bounded("middle", 1, samples_per_segment=4)
 
     def test_serialization_round_trip(self):
         curve = sample_curve().insert_on_segment(0, 0.4, "new")
