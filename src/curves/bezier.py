@@ -375,3 +375,27 @@ class BezierCurve:
                 tuple(item["incoming"]), tuple(item["outgoing"]),
                 Continuity(item["continuity"])))
         return cls(tuple(anchors), int(data["dimension"]))
+
+
+@dataclass(frozen=True)
+class DeletionReport:
+    """Measured result of a bounded anchor deletion fit."""
+
+    anchor_id: str
+    rms_deviation: float
+    max_sampled_deviation: float
+    tolerance_mm: float
+    samples_per_segment: int
+    accepted: bool
+
+
+class CurveFitToleranceError(ValueError):
+    """Raised when deleting an anchor would exceed the requested tolerance."""
+
+    def __init__(self, report: DeletionReport) -> None:
+        self.report = report
+        super().__init__(
+            f"Deleting anchor {report.anchor_id!r} would produce a maximum "
+            f"sampled deviation of {report.max_sampled_deviation:.6g} mm "
+            f"(limit {report.tolerance_mm:.6g} mm)"
+        )
