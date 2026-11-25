@@ -1,0 +1,14 @@
+{
+  "name": "Wingfoil 1600 x 520 mm starter",
+  "perimeter_samples": 96,
+  "longitudinal_samples_per_interval": 16,
+  "stations": [
+    {"x_mm": -800, "width_mm": 0, "thickness_mm": 78, "bottom_z_mm": 0, "deck_crown_mm": 2},
+    {"x_mm": -650, "width_mm": 180, "thickness_mm": 82, "bottom_z_mm": 1, "deck_crown_mm": 3},
+    {"x_mm": -400, "width_mm": 365, "thickness_mm": 88, "bottom_z_mm": 4, "deck_crown_mm": 4, "bottom_concave_mm": 1},
+    {"x_mm": 0, "width_mm": 520, "thickness_mm": 92, "bottom_z_mm": 8, "deck_crown_mm": 5, "bottom_concave_mm": 2},
+    {"x_mm": 400, "width_mm": 455, "thickness_mm": 88, "bottom_z_mm": 5, "deck_crown_mm": 4, "bottom_concave_mm": 1},
+    {"x_mm": 650, "width_mm": 235, "thickness_mm": 82, "bottom_z_mm": 2, "deck_crown_mm": 3},
+    {"x_mm": 800, "width_mm": 0, "thickness_mm": 78, "bottom_z_mm": 0, "deck_crown_mm": 2}
+  ]
+}
