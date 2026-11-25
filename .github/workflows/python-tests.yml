@@ -1,3 +1,4 @@
+# Activated on main via PR #9.
 name: Python tests
 
 on:
