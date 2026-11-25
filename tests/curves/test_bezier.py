@@ -1,6 +1,7 @@
 import unittest
 
-from src.curves.bezier import (Anchor, BezierCurve, Continuity,\n                               CurveFitToleranceError)
+from src.curves.bezier import (Anchor, BezierCurve, Continuity,
+                               CurveFitToleranceError)
 
 
 def sample_curve():
