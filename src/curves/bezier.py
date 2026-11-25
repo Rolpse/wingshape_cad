@@ -224,8 +224,14 @@ class BezierCurve:
         new_id = anchor_id or str(uuid4())
         if any(a.id == new_id for a in self.anchors):
             raise ValueError(f"Anchor id already exists: {new_id}")
-        new_left = replace(left, outgoing=q0)
-        new_right = replace(right, incoming=q2)
+        # Exact subdivision shortens one handle at each touched endpoint.
+        # A symmetric handle pair cannot remain symmetric after a non-midpoint
+        # split; preserve the exact geometry and relax only that local mode to
+        # Smooth (tangent continuity is still preserved).
+        left_mode = Continuity.SMOOTH if left.continuity == Continuity.SYMMETRIC else left.continuity
+        right_mode = Continuity.SMOOTH if right.continuity == Continuity.SYMMETRIC else right.continuity
+        new_left = replace(left, outgoing=q0, continuity=left_mode)
+        new_right = replace(right, incoming=q2, continuity=right_mode)
         inserted = Anchor(new_id, split, r0, r1, Continuity.SMOOTH)
         anchors = list(self.anchors)
         anchors[segment_index:segment_index+2] = [new_left, inserted, new_right]
@@ -246,8 +252,10 @@ class BezierCurve:
         before, removed, after = self.anchors[index-1:index+2]
         # Join at 1/3 and 2/3 of the chord: deterministic, visibly documented fallback.
         chord = _sub(after.position, before.position)
-        new_before = replace(before, outgoing=_add(before.position, _scale(chord, 1/3)))
-        new_after = replace(after, incoming=_sub(after.position, _scale(chord, 1/3)))
+        new_before = replace(before, outgoing=_add(before.position, _scale(chord, 1/3)),
+                             continuity=Continuity.CORNER)
+        new_after = replace(after, incoming=_sub(after.position, _scale(chord, 1/3)),
+                            continuity=Continuity.CORNER)
         anchors = list(self.anchors)
         anchors[index-1:index+2] = [new_before, new_after]
         return replace(self, anchors=tuple(anchors))
