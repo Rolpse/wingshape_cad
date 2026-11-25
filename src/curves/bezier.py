@@ -237,6 +237,102 @@ class BezierCurve:
         anchors[segment_index:segment_index+2] = [new_left, inserted, new_right]
         return replace(self, anchors=tuple(anchors))
 
+    def delete_anchor_bounded(
+        self, anchor_id: str, max_deviation: float, samples_per_segment: int = 80
+    ) -> tuple["BezierCurve", "DeletionReport"]:
+        """Remove an interior anchor only when a fitted cubic stays within tolerance.
+
+        The two original segments are sampled uniformly in their own parameter
+        domains. A replacement cubic is fitted with endpoint tangent directions
+        constrained by the surviving anchors' adjacent handles. The reported
+        deviation is the sampled point-to-point error, not a formal Hausdorff
+        bound; increase samples_per_segment for tighter validation.
+        """
+        if not math.isfinite(max_deviation) or max_deviation < 0:
+            raise ValueError("max_deviation must be finite and non-negative")
+        if samples_per_segment < 8:
+            raise ValueError("samples_per_segment must be at least 8")
+        index = next((i for i, a in enumerate(self.anchors) if a.id == anchor_id), None)
+        if index is None:
+            raise KeyError(anchor_id)
+        if index == 0 or index == len(self.anchors) - 1:
+            raise ValueError("Open-curve endpoints cannot be deleted")
+
+        before, removed, after = self.anchors[index-1:index+2]
+        source = []
+        for j in range(samples_per_segment + 1):
+            u = j / samples_per_segment
+            if u <= 0.5:
+                source.append(self.evaluate(index-1, u * 2.0))
+            else:
+                source.append(self.evaluate(index, (u - 0.5) * 2.0))
+
+        chord = _sub(after.position, before.position)
+        chord_length = _length(chord)
+        if chord_length <= 1e-12:
+            raise ValueError("Cannot fit deletion when surviving anchors coincide")
+
+        def unit_or(vector: Point, fallback: Point) -> Point:
+            length = _length(vector)
+            return _scale(vector, 1.0 / length) if length > 1e-12 else fallback
+
+        chord_unit = _scale(chord, 1.0 / chord_length)
+        tangent_a = unit_or(_sub(before.outgoing, before.position), chord_unit)
+        tangent_b = unit_or(_sub(after.position, after.incoming), chord_unit)
+        # Keep the fitted handles forward-facing; optimize only their lengths.
+        p0, p3 = before.position, after.position
+
+        def candidate(alpha: float, beta: float) -> tuple[Point, Point, Point, Point]:
+            return (p0, _add(p0, _scale(tangent_a, alpha)),
+                    _sub(p3, _scale(tangent_b, beta)), p3)
+
+        def errors(alpha: float, beta: float) -> tuple[float, float]:
+            controls = candidate(alpha, beta)
+            distances = [_length(_sub(evaluate_cubic(*controls, i / samples_per_segment), target))
+                         for i, target in enumerate(source)]
+            return sum(d*d for d in distances), max(distances)
+
+        # Coarse global search followed by deterministic two-parameter pattern
+        # refinement. No numerical/scientific dependencies are required.
+        upper = max(chord_length * 3.0, _length(_sub(removed.position, before.position))
+                    + _length(_sub(after.position, removed.position)), 1.0)
+        grid = [upper * i / 20.0 for i in range(21)]
+        best = (float("inf"), chord_length / 3.0, chord_length / 3.0)
+        for alpha in grid:
+            for beta in grid:
+                score, _ = errors(alpha, beta)
+                if score < best[0]:
+                    best = (score, alpha, beta)
+        alpha, beta = best[1], best[2]
+        step = upper / 20.0
+        for _ in range(40):
+            improved = False
+            for da, db in ((-step, 0.0), (step, 0.0), (0.0, -step), (0.0, step),
+                           (-step, -step), (-step, step), (step, -step), (step, step)):
+                a, b = max(0.0, min(upper, alpha + da)), max(0.0, min(upper, beta + db))
+                score, _ = errors(a, b)
+                if score + 1e-18 < best[0]:
+                    best, alpha, beta = (score, a, b), a, b
+                    improved = True
+            if not improved:
+                step *= 0.5
+            if step < max(1e-9, upper * 1e-8):
+                break
+
+        _, maximum = errors(alpha, beta)
+        rms = math.sqrt(best[0] / len(source))
+        report = DeletionReport(anchor_id, rms, maximum, max_deviation,
+                                samples_per_segment, maximum <= max_deviation)
+        if not report.accepted:
+            raise CurveFitToleranceError(report)
+
+        p0, p1, p2, p3 = candidate(alpha, beta)
+        new_before = replace(before, outgoing=p1, continuity=Continuity.CORNER)
+        new_after = replace(after, incoming=p2, continuity=Continuity.CORNER)
+        anchors = list(self.anchors)
+        anchors[index-1:index+2] = [new_before, new_after]
+        return replace(self, anchors=tuple(anchors)), report
+
     def delete_anchor(self, anchor_id: str) -> "BezierCurve":
         """Delete an anchor and join its neighbors with a straight cubic.
 
