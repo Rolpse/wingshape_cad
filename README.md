@@ -34,6 +34,12 @@ These are prototypes, not a complete interactive CAD application, validated CAM 
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
 
+## Board geometry specifications
+
+- [Board geometry generator 001](docs/board/board-geometry-generator-001.md)
+- [Deck and bottom cross-sections DOM-004](docs/board/deck-bottom-cross-sections-004.md)
+- [Control-point editing contract](docs/engineering/control-point-editing-contract-001.md)
+
 ## Run
 
 Build starter board mesh:
