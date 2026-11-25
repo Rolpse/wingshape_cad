@@ -43,6 +43,10 @@ The transverse kernel is currently an additive geometry module; integration into
 - [Deck and bottom cross-sections DOM-004](docs/board/deck-bottom-cross-sections-004.md)
 - [Control-point editing contract](docs/engineering/control-point-editing-contract-001.md)
 
+## Domain model
+
+- [SurfWing Shape Master Model 001 (proposal, schema v0.1)](docs/domain/shape-master-model-001.md)
+
 ## Run
 
 Build starter board mesh:
