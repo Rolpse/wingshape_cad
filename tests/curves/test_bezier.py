@@ -25,6 +25,17 @@ class BezierControlPointTests(unittest.TestCase):
             for a, b in zip(actual, expected):
                 self.assertAlmostEqual(a, b, places=9)
 
+    def test_insertion_relaxes_symmetric_mode_to_smooth_without_changing_curve(self):
+        curve = sample_curve().set_continuity("A", Continuity.SYMMETRIC)
+        split = curve.insert_on_segment(0, 0.3, "split")
+        self.assertEqual(split.anchors[0].continuity, Continuity.SMOOTH)
+        for i in range(101):
+            t = i / 100
+            actual = split.evaluate(0, t / 0.3) if t <= 0.3 else split.evaluate(1, (t-0.3)/0.7)
+            expected = curve.evaluate(0, t)
+            for a, b in zip(actual, expected):
+                self.assertAlmostEqual(a, b, places=9)
+
     def test_insertion_rejects_endpoints_and_duplicate_ids(self):
         curve = sample_curve()
         for t in (0.0, 1.0):
