@@ -18,14 +18,16 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 ## Current prototype
 
 - Parametric board station model and closed triangle mesh; OBJ and binary STL export.
+- Independent analytic transverse section kernel: flat, V, single/double concave, dome and standing-area profiles, with symmetric/asymmetric validation.
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
-These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
+The transverse kernel is currently an additive geometry module; integration into mesh lofting and the interactive CAD editor remains pending. These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
 
 ## Imported source and tests
 
-- Board geometry: src/board/geometry.py; demo generator: src/board/generate_demo.py
+- Board mesh geometry: src/board/geometry.py; demo generator: src/board/generate_demo.py
+- Transverse section model: src/board/sections.py
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
 - Hydrodynamics calculations: src/hydrodynamics/performance.py
