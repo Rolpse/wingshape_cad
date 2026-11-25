@@ -17,7 +17,7 @@ An exact split changes handle lengths at the adjacent anchors. If an adjacent an
 
 The original `delete_anchor` remains a simple straight-chord approximation for compatibility. New code should use `delete_anchor_bounded(anchor_id, max_deviation, samples_per_segment=80)`. It fits a replacement cubic with the surviving endpoint tangent directions, returns a `DeletionReport` (RMS and maximum sampled deviation), and raises `CurveFitToleranceError` if the tolerance is exceeded. Endpoints of open curves are protected.
 
-The tolerance is currently a maximum over a uniform set of corresponding parameter samples, not a mathematically certified Hausdorff-distance bound. The fit optimizes the two handle lengths with a deterministic coarse grid and pattern refinement. For production board/CAM geometry, adaptive subdivision and a geometric distance bound are still required. The joined endpoint anchors are set to Corner mode because the refit may not preserve their prior opposite handles.
+The tolerance is currently a approximate symmetric distance between uniformly sampled source and fitted polylines, not a mathematically certified Hausdorff-distance bound. The fit optimizes the two handle lengths with a deterministic coarse grid and pattern refinement. The RMS and maximum values are sampled geometric-distance estimates, not exact analytic extrema. For production board/CAM geometry, adaptive subdivision and a geometric distance bound are still required. The joined endpoint anchors are set to Corner mode because the refit may not preserve their prior opposite handles.
 
 ## Not yet implemented
 
