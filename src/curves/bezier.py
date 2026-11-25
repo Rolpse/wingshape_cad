@@ -292,6 +292,52 @@ class BezierCurve:
                          for i, target in enumerate(source)]
             return sum(d*d for d in distances), max(distances)
 
+        # Exact inverse of de Casteljau subdivision. When the removed anchor
+        # was created by insert_on_segment(), its two handles encode the split
+        # parameter. Reconstructing the parent cubic avoids a false failure
+        # caused by comparing two different segment parameterizations.
+        incoming_length = _length(_sub(removed.position, removed.incoming))
+        outgoing_length = _length(_sub(removed.outgoing, removed.position))
+        handle_sum = incoming_length + outgoing_length
+        if handle_sum > 1e-12:
+            split_t = incoming_length / handle_sum
+            if 1e-9 < split_t < 1.0 - 1e-9:
+                exact_p1 = _add(
+                    p0, _scale(_sub(before.outgoing, p0), 1.0 / split_t)
+                )
+                exact_p2 = _add(
+                    p3, _scale(_sub(after.incoming, p3), 1.0 / (1.0 - split_t))
+                )
+                exact_controls = (p0, exact_p1, exact_p2, p3)
+                exact_distances = []
+                for i, target in enumerate(source):
+                    q = i / samples_per_segment
+                    original_t = (
+                        2.0 * q * split_t
+                        if q <= 0.5
+                        else split_t + 2.0 * (q - 0.5) * (1.0 - split_t)
+                    )
+                    actual = evaluate_cubic(*exact_controls, original_t)
+                    exact_distances.append(_length(_sub(actual, target)))
+                exact_max = max(exact_distances)
+                exact_rms = math.sqrt(
+                    sum(d * d for d in exact_distances) / len(exact_distances)
+                )
+                if exact_max <= max_deviation:
+                    report = DeletionReport(
+                        anchor_id, exact_rms, exact_max, max_deviation,
+                        samples_per_segment, True
+                    )
+                    new_before = replace(
+                        before, outgoing=exact_p1, continuity=Continuity.CORNER
+                    )
+                    new_after = replace(
+                        after, incoming=exact_p2, continuity=Continuity.CORNER
+                    )
+                    anchors = list(self.anchors)
+                    anchors[index - 1:index + 2] = [new_before, new_after]
+                    return replace(self, anchors=tuple(anchors)), report
+
         # Coarse global search followed by deterministic two-parameter pattern
         # refinement. No numerical/scientific dependencies are required.
         upper = max(chord_length * 3.0, _length(_sub(removed.position, before.position))
