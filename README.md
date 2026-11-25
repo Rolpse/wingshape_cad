@@ -19,6 +19,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 
 - Parametric board station model and closed triangle mesh; OBJ and binary STL export.
 - Independent analytic transverse section kernel: flat, V, single/double concave, dome and standing-area profiles, with symmetric/asymmetric validation.
+- Separate closed triangle-mesh loft for analytic sections, with a shared lateral sampling grid, nose/tail caps and watertightness/volume checks.
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
