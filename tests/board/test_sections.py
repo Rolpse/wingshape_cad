@@ -45,8 +45,8 @@ class TransverseProfileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "thickness"):
             BoardCrossSection(
                 "crossing", 0, 500, 2,
-                bottom=TransverseProfile("single_concave", depth_mm=2),
-                deck=TransverseProfile("flat"),
+                bottom=TransverseProfile("flat"),
+                deck=TransverseProfile("single_concave", depth_mm=3),
             )
 
     def test_u_outside_domain_rejected(self):
