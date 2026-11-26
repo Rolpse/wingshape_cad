@@ -490,7 +490,7 @@ def import_legacy_board_json(data: dict[str, Any], *, model_id: str | None = Non
         if unknown: raise ValueError(f"legacy station {i}: unknown fields {', '.join(sorted(unknown))}")
         if not {"x_mm","width_mm","thickness_mm"}.issubset(raw): raise ValueError(f"legacy station {i}: x_mm,width_mm,thickness_mm required")
         legacy_stations.append(BoardStation(**raw))
-    definition=BoardDefinition(str(data.get("name","Legacy board")),tuple(legacy_stations),int(data.get("perimeter_samples",48)),int(data.get("longitudinal_samples_per_interval",8))))
+    definition=BoardDefinition(str(data.get("name","Legacy board")),tuple(legacy_stations),int(data.get("perimeter_samples",48)),int(data.get("longitudinal_samples_per_interval",8)))
     canonical=json.dumps(data,sort_keys=True,separators=(",",":"),allow_nan=False)
     seed=model_id or str(uuid.uuid5(_NAMESPACE,canonical))
     model_id=seed
