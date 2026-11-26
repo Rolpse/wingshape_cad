@@ -23,7 +23,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
-The transverse kernel is currently an additive geometry module; integration into mesh lofting and the interactive CAD editor remains pending. These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
+The transverse profile kernel and analytic section-loft mesh are additive paths; integration into the legacy station generator, profile interpolation and the interactive CAD editor remain pending. These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
 
 ## Imported source and tests
 
@@ -45,7 +45,7 @@ The transverse kernel is currently an additive geometry module; integration into
 
 ## Domain model
 
-- [SurfWing Shape Master Model 001 (proposal, schema v0.1)](docs/domain/shape-master-model-001.md)
+- [SurfWing Shape Master Model 001](docs/domain/shape-master-model-001.md)\n- [Shape Document Schema 0.1.0 — implementation and limitations](docs/domain/shape-document-schema-implementation-001.md)\n- [JSON Schema Draft 2020-12](schemas/shape-document-0.1.0.schema.json)\n- Domain fixtures: `examples/domain/`
 
 ## Run
 
