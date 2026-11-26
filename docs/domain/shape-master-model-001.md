@@ -1,6 +1,6 @@
 # SurfWing Shape Master Model 001
 
-**Status:** domain proposal; structural schema v0.1.0 implemented, provisional Python semantic validator with 68 passing CI tests; not a complete CAD kernel  
+**Status:** domain proposal; structural schema v0.1.0 implemented, provisional Python semantic validator with 75 passing CI tests; not a complete CAD kernel  
 **Date:** 2026-11-26  
 **Repository:** `Rolpse/wingshape_cad`  
 **Scope:** kernel-neutral source-of-truth model for surfboards, wingfoil boards and hydrofoils.
@@ -201,7 +201,7 @@ For `product_kind=surfboard`, foil mounts/assembly may be absent. For `wingfoil_
 ## 12. Blockers / sequencing
 
 - Issue #3: source-of-truth and Python/C++ integration decision remains open. This spec avoids choosing the implementation.
-- Issue #7: analytic section-loft tests now pass CI; JSON profile integration into the loft, longitudinal interpolation, fold/self-intersection validation and integration with the legacy generator remain pending.
+- Issue #7: the v0.1 document adapter now lofts analytic deck/bottom profiles with configurable longitudinal sampling; 75 tests pass. Curve-backed profile integration, fold/self-intersection validation and integration with the legacy generator remain pending.
 - Draft PR #6: architecture proposal is still unmerged; review its contracts against this schema before implementation.
 
 **Next milestone (completed in part):** structural JSON Schema 0.1.0, provisional Python semantic validator, legacy station adapter and surfboard/wingfoil-board/foil fixtures are committed. CI acceptance is still pending. Next work is test-gated validator refinement and integration with the section-loft milestone; do not build UI or kernel-specific topology around an unreviewed schema.
@@ -213,4 +213,4 @@ For `product_kind=surfboard`, foil mounts/assembly may be absent. For `wingfoil_
 - Provisional runtime: `src/domain/shape_document.py` uses stdlib semantic checks and optional jsonschema validation. It does not decide the long-term Python/C++ source-of-truth boundary.
 - Fixtures: surfboard, wingfoil board and multi-component foil under `examples/domain/`.
 - Implementation limitations and test matrix: [shape-document-schema-implementation-001.md](shape-document-schema-implementation-001.md).
-- CI observed successful on commit `95dfec342c810a752176367a4fd30a97b78ac34c`: 68 tests passed. The schema/validator milestone is accepted as a partial domain milestone; geometric/kernel acceptance remains incomplete.
+- CI observed successful on commit `9dcd91bc3eb34dc326c4974a7557ea8b8ebef41c`: 75 tests passed. The schema/validator milestone is accepted as a partial domain milestone; geometric/kernel acceptance remains incomplete.
