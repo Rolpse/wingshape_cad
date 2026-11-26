@@ -122,6 +122,56 @@ class ShapeDocumentSchemaTests(unittest.TestCase):
         comps[1]["attachment"]["parent_component_id"]=comps[0]["id"]
         self.assertTrue(any("attachment cycle" in e for e in validate_document(doc)))
 
+    def test_smooth_aligned_handles_accept_unequal_lengths(self):
+        doc=fixture("surfboard-0.1.json")
+        anchor=doc["curves"][1]["anchors"][1]
+        x,z=anchor["position"]
+        anchor["incoming_handle"]=[x-10,z]
+        anchor["outgoing_handle"]=[x+25,z]
+        anchor["continuity"]="smooth_aligned"
+        self.assertEqual(validate_document(doc),[])
+
+    def test_smooth_aligned_rejects_non_collinear_handles(self):
+        doc=fixture("surfboard-0.1.json")
+        anchor=doc["curves"][1]["anchors"][1]
+        x,z=anchor["position"]
+        anchor["incoming_handle"]=[x-10,z]
+        anchor["outgoing_handle"]=[x,z+10]
+        anchor["continuity"]="smooth_aligned"
+        self.assertTrue(any("not opposed/collinear" in e for e in validate_document(doc)))
+
+    def test_symmetric_handles_reject_unequal_lengths(self):
+        doc=fixture("surfboard-0.1.json")
+        anchor=doc["curves"][1]["anchors"][1]
+        x,z=anchor["position"]
+        anchor["incoming_handle"]=[x-10,z]
+        anchor["outgoing_handle"]=[x+25,z]
+        anchor["continuity"]="symmetric"
+        self.assertTrue(any("symmetric handles differ" in e for e in validate_document(doc)))
+
+    def test_schema_rejects_unknown_document_field(self):
+        doc=fixture("surfboard-0.1.json")
+        doc["unexpected_field"]=True
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("jsonschema dependency not installed")
+        with self.assertRaises(jsonschema.ValidationError):
+            jsonschema.Draft202012Validator(load_schema()).validate(doc)
+
+    def test_variant_remove_optional_curve_frame(self):
+        base=fixture("surfboard-0.1.json")
+        variant={"changes":[{"target_id":"curve-rocker","operation":"remove","field_path":["frame_id"]}]}
+        changed=apply_variant(base,variant)
+        self.assertNotIn("frame_id",changed["curves"][1])
+        self.assertIn("frame_id",base["curves"][1])
+        validate_shape_document(changed)
+
+    def test_missing_feature_input_rejected(self):
+        doc=fixture("surfboard-0.1.json")
+        doc["feature_graph"]["nodes"]=[{"id":"feature-1","type":"custom","inputs":["missing-semantic"],"outputs":[],"parameters":{},"revision":0,"enabled":True}]
+        self.assertTrue(any("missing semantic input" in e for e in validate_document(doc)))
+
     def test_legacy_import_deterministic_and_source_preserved(self):
         legacy={"name":"Legacy test","perimeter_samples":48,"longitudinal_samples_per_interval":8,
                 "stations":[{"x_mm":-300,"width_mm":0,"thickness_mm":50},
