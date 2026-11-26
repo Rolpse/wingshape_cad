@@ -725,6 +725,13 @@
         },
         "material": {
           "type": "object"
+        },
+        "span_axis": {
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ]
         }
       },
       "required": [
@@ -733,7 +740,8 @@
         "frame_id",
         "attachment",
         "outline_curve_ids",
-        "stations"
+        "stations",
+        "span_axis"
       ]
     },
     "foilAssembly": {
