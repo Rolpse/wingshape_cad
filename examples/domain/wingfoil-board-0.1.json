@@ -1,0 +1,687 @@
+{
+  "document_type": "surfwing.shape",
+  "schema_version": "0.1.0",
+  "model_id": "model-wingfoil_board",
+  "name": "Wingfoil 1600 starter",
+  "product_kind": "wingfoil_board",
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "coordinate_system": {
+    "handedness": "right",
+    "x": "nose_to_tail_positive_aft",
+    "y": "centerline_to_starboard_positive",
+    "z": "bottom_to_deck_positive_up"
+  },
+  "frames": [
+    {
+      "id": "frame-global",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "frame-section-0",
+      "origin_mm": [
+        -600,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-section-1",
+      "origin_mm": [
+        -300,
+        0,
+        3
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-section-2",
+      "origin_mm": [
+        0,
+        0,
+        8
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-section-3",
+      "origin_mm": [
+        300,
+        0,
+        4
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-section-4",
+      "origin_mm": [
+        600,
+        0,
+        1
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    }
+  ],
+  "curves": [
+    {
+      "id": "curve-outline",
+      "role": "outline_xy",
+      "dimension": 2,
+      "frame_id": "frame-global",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "curve-outline-a0",
+          "position": [
+            -600,
+            -105
+          ],
+          "incoming_handle": [
+            -600,
+            -105
+          ],
+          "outgoing_handle": [
+            -600,
+            -105
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a1",
+          "position": [
+            -300,
+            -180
+          ],
+          "incoming_handle": [
+            -300,
+            -180
+          ],
+          "outgoing_handle": [
+            -300,
+            -180
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a2",
+          "position": [
+            0,
+            -240
+          ],
+          "incoming_handle": [
+            0,
+            -240
+          ],
+          "outgoing_handle": [
+            0,
+            -240
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a3",
+          "position": [
+            300,
+            -195
+          ],
+          "incoming_handle": [
+            300,
+            -195
+          ],
+          "outgoing_handle": [
+            300,
+            -195
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a4",
+          "position": [
+            600,
+            -115
+          ],
+          "incoming_handle": [
+            600,
+            -115
+          ],
+          "outgoing_handle": [
+            600,
+            -115
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a5",
+          "position": [
+            600,
+            115
+          ],
+          "incoming_handle": [
+            600,
+            115
+          ],
+          "outgoing_handle": [
+            600,
+            115
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a6",
+          "position": [
+            300,
+            195
+          ],
+          "incoming_handle": [
+            300,
+            195
+          ],
+          "outgoing_handle": [
+            300,
+            195
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a7",
+          "position": [
+            0,
+            240
+          ],
+          "incoming_handle": [
+            0,
+            240
+          ],
+          "outgoing_handle": [
+            0,
+            240
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a8",
+          "position": [
+            -300,
+            180
+          ],
+          "incoming_handle": [
+            -300,
+            180
+          ],
+          "outgoing_handle": [
+            -300,
+            180
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-outline-a9",
+          "position": [
+            -600,
+            105
+          ],
+          "incoming_handle": [
+            -600,
+            105
+          ],
+          "outgoing_handle": [
+            -600,
+            105
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "curve-rocker",
+      "role": "rocker_xz",
+      "dimension": 2,
+      "frame_id": "frame-global",
+      "closed": false,
+      "anchors": [
+        {
+          "id": "curve-rocker-a0",
+          "position": [
+            -600,
+            0
+          ],
+          "incoming_handle": [
+            -600,
+            0
+          ],
+          "outgoing_handle": [
+            -600,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-rocker-a1",
+          "position": [
+            -300,
+            3
+          ],
+          "incoming_handle": [
+            -300,
+            3
+          ],
+          "outgoing_handle": [
+            -300,
+            3
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-rocker-a2",
+          "position": [
+            0,
+            8
+          ],
+          "incoming_handle": [
+            0,
+            8
+          ],
+          "outgoing_handle": [
+            0,
+            8
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-rocker-a3",
+          "position": [
+            300,
+            4
+          ],
+          "incoming_handle": [
+            300,
+            4
+          ],
+          "outgoing_handle": [
+            300,
+            4
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-rocker-a4",
+          "position": [
+            600,
+            1
+          ],
+          "incoming_handle": [
+            600,
+            1
+          ],
+          "outgoing_handle": [
+            600,
+            1
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "curve-stringer",
+      "role": "stringer_xz",
+      "dimension": 2,
+      "frame_id": "frame-global",
+      "closed": false,
+      "anchors": [
+        {
+          "id": "curve-stringer-a0",
+          "position": [
+            -600,
+            62
+          ],
+          "incoming_handle": [
+            -600,
+            62
+          ],
+          "outgoing_handle": [
+            -600,
+            62
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-stringer-a1",
+          "position": [
+            -300,
+            71
+          ],
+          "incoming_handle": [
+            -300,
+            71
+          ],
+          "outgoing_handle": [
+            -300,
+            71
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-stringer-a2",
+          "position": [
+            0,
+            80
+          ],
+          "incoming_handle": [
+            0,
+            80
+          ],
+          "outgoing_handle": [
+            0,
+            80
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-stringer-a3",
+          "position": [
+            300,
+            72
+          ],
+          "incoming_handle": [
+            300,
+            72
+          ],
+          "outgoing_handle": [
+            300,
+            72
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "curve-stringer-a4",
+          "position": [
+            600,
+            63
+          ],
+          "incoming_handle": [
+            600,
+            63
+          ],
+          "outgoing_handle": [
+            600,
+            63
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    }
+  ],
+  "board": {
+    "outline_curve_id": "curve-outline",
+    "rocker_curve_id": "curve-rocker",
+    "stringer_curve_id": "curve-stringer",
+    "stations": [
+      {
+        "id": "station-0",
+        "x_mm": -600,
+        "frame_id": "frame-section-0",
+        "role": "regular",
+        "width_mm": 210,
+        "thickness_mm": 62,
+        "bottom_z_mm": 0,
+        "deck_profile": {
+          "kind": "dome",
+          "depth_mm": 3.5
+        },
+        "bottom_profile": {
+          "kind": "flat",
+          "depth_mm": 0,
+          "half_width_u": 0.6
+        },
+        "symmetry": "symmetric"
+      },
+      {
+        "id": "station-1",
+        "x_mm": -300,
+        "frame_id": "frame-section-1",
+        "role": "regular",
+        "width_mm": 360,
+        "thickness_mm": 68,
+        "bottom_z_mm": 3,
+        "deck_profile": {
+          "kind": "dome",
+          "depth_mm": 3.5
+        },
+        "bottom_profile": {
+          "kind": "flat",
+          "depth_mm": 0,
+          "half_width_u": 0.6
+        },
+        "symmetry": "symmetric"
+      },
+      {
+        "id": "station-2",
+        "x_mm": 0,
+        "frame_id": "frame-section-2",
+        "role": "regular",
+        "width_mm": 480,
+        "thickness_mm": 72,
+        "bottom_z_mm": 8,
+        "deck_profile": {
+          "kind": "dome",
+          "depth_mm": 3.5
+        },
+        "bottom_profile": {
+          "kind": "single_concave",
+          "depth_mm": 1.8,
+          "half_width_u": 0.6
+        },
+        "symmetry": "symmetric"
+      },
+      {
+        "id": "station-3",
+        "x_mm": 300,
+        "frame_id": "frame-section-3",
+        "role": "regular",
+        "width_mm": 390,
+        "thickness_mm": 68,
+        "bottom_z_mm": 4,
+        "deck_profile": {
+          "kind": "dome",
+          "depth_mm": 3.5
+        },
+        "bottom_profile": {
+          "kind": "flat",
+          "depth_mm": 0,
+          "half_width_u": 0.6
+        },
+        "symmetry": "symmetric"
+      },
+      {
+        "id": "station-4",
+        "x_mm": 600,
+        "frame_id": "frame-section-4",
+        "role": "regular",
+        "width_mm": 230,
+        "thickness_mm": 62,
+        "bottom_z_mm": 1,
+        "deck_profile": {
+          "kind": "dome",
+          "depth_mm": 3.5
+        },
+        "bottom_profile": {
+          "kind": "flat",
+          "depth_mm": 0,
+          "half_width_u": 0.6
+        },
+        "symmetry": "symmetric"
+      }
+    ],
+    "rail_definition": {
+      "boundary_curve_ids": [
+        "curve-outline"
+      ],
+      "transition": "g1",
+      "parameters": {
+        "rail_profile": "round-over"
+      }
+    },
+    "nose": {
+      "shape_family": "round",
+      "boundary_curve_id": null,
+      "parameters": {
+        "tip_radius_mm": 25
+      }
+    },
+    "tail": {
+      "shape_family": "swallow",
+      "boundary_curve_id": null,
+      "parameters": {}
+    },
+    "mounts": [
+      {
+        "id": "mount-track",
+        "type": "foil_track",
+        "frame_id": "frame-global",
+        "position_mm": [
+          0,
+          0,
+          0
+        ],
+        "target_id": null,
+        "parameters": {
+          "track_length_mm": 300,
+          "track_spacing_mm": 90
+        }
+      }
+    ]
+  },
+  "foil_assembly": null,
+  "feature_graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "surface_recipe": {
+    "patches": [],
+    "shared_boundaries": []
+  },
+  "tolerance_profile": {
+    "curve_fit_mm": 0.05,
+    "section_fit_mm": 0.05,
+    "g0_mm": 0.05,
+    "g1_rad": 0.008726646259971648,
+    "g2_mm_inv": 0.001,
+    "sewing_mm": 0.05,
+    "tessellation_chord_mm": 0.5,
+    "tessellation_angle_rad": 0.08726646259971647,
+    "manufacturing_mm": 0.5
+  },
+  "variants": [],
+  "derived": {
+    "source_revision": null,
+    "properties": [],
+    "validation": []
+  }
+}
