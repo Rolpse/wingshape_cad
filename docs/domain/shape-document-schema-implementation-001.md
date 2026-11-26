@@ -1,6 +1,6 @@
 # Shape Document Schema 0.1.0 — implementation record
 
-**Status:** structural JSON Schema committed; provisional Python semantic validator/adapter; latest CI passes 66 tests. Domain acceptance remains partial.  
+**Status:** structural JSON Schema committed; provisional Python semantic validator/adapter; latest CI passes 68 tests. Domain acceptance remains partial.  
 **Repository:** `Rolpse/wingshape_cad`  
 **Schema:** [shape-document-0.1.0.schema.json](../../schemas/shape-document-0.1.0.schema.json)
 
