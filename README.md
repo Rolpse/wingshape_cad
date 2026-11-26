@@ -19,7 +19,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 
 - Parametric board station model and closed triangle mesh; OBJ and binary STL export.
 - Independent analytic transverse section kernel: flat, V, single/double concave, dome and standing-area profiles, with symmetric/asymmetric validation.
-- Separate closed triangle-mesh loft for analytic sections, with a shared lateral sampling grid, nose/tail caps and watertightness/volume checks.
+- Separate closed triangle-mesh loft for analytic sections, with a shared lateral sampling grid, nose/tail caps, longitudinal sampling and watertightness/positive-volume checks.\n- Provisional domain-document adapter for surfboard/wingfoil-board analytic station profiles.
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
@@ -32,7 +32,7 @@ The transverse profile kernel and analytic section-loft mesh are additive paths;
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
 - Hydrodynamics calculations: src/hydrodynamics/performance.py
-- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (68 tests currently passing in CI)
+- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (75 tests currently passing in CI)
 - Engineering contracts/reviews: docs/engineering and docs/board
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
