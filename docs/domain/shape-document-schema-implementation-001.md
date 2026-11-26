@@ -1,13 +1,13 @@
 # Shape Document Schema 0.1.0 — implementation record
 
-**Status:** structural JSON Schema committed; provisional Python semantic validator/adapter; latest CI passes 68 tests. Domain acceptance remains partial.  
+**Status:** structural JSON Schema committed; provisional Python semantic validator/adapter; latest CI passes 75 tests. Domain acceptance remains partial.  
 **Repository:** `Rolpse/wingshape_cad`  
 **Schema:** [shape-document-0.1.0.schema.json](../../schemas/shape-document-0.1.0.schema.json)
 
 ## Files
 
 - `schemas/shape-document-0.1.0.schema.json`: JSON Schema Draft 2020-12. Strict objects, canonical units, product-kind constraints, IDs, frames, curves/anchors/handles, board stations and analytic profiles, mounts, foil components and span axes, feature graph, surface recipe, tolerances, variants and derived metadata.
-- `src/domain/shape_document.py`: stdlib semantic validator, JSON load/save entry points, length conversion, field-level variant application and legacy BoardStation import.
+- `src/domain/shape_document.py`: stdlib semantic validator, JSON load/save entry points, length conversion, field-level variant application and legacy BoardStation import.\n- `src/board/document_loft.py`: provisional adapter that converts analytic board station profiles into `BoardCrossSection` and calls the section loft.
 - `examples/domain/surfboard-0.1.json`: surfboard structural fixture.
 - `examples/domain/wingfoil-board-0.1.json`: wingfoil-board fixture with foil-track mount and a width variant.
 - `examples/domain/foil-assembly-0.1.json`: multi-component main wing, fuselage, stabilizer and mast with declared span axes and station frames.
@@ -53,7 +53,7 @@
 - Feature-cache dependency invalidation/recompute.
 - Variant add/delete entity operations, list-index edits, base-revision enforcement or recompute. v0.1 field changes only.
 - Exact mapping from legacy triangle mesh to new section profiles; legacy source is preserved and import warns.
-- Longitudinal profile interpolation, integration into legacy mesh generator, interactive editor, CAM/CFD kernels.
+- Curve-backed section profiles, measured G0/G1/G2, fold-over/self-intersection validation, integration into legacy mesh generator, interactive editor, CAM/CFD kernels.
 - Python/C++ interchange/runtime integration until Issue #3 is decided.
 
 ## Acceptance coverage
@@ -78,3 +78,12 @@
 ## Gate
 
 No CI result is claimed in this record. The workflow has been updated to install `jsonschema` and run `python -m unittest discover -v`; verify the Actions run triggered by these commits before considering the milestone accepted. Issue #3 and Issue #7 remain separate blockers for native interoperability and integrated loft/profile persistence.
+
+
+## Analytic board loft adapter checkpoint (2026-11-27)
+
+- `src/board/document_loft.py` consumes validated v0.1 surfboard/wingfoil-board documents with analytic deck/bottom profiles and converts station data to `BoardCrossSection`.
+- `generate_section_loft_mesh` now supports `longitudinal_samples_per_interval`: it interpolates width and evaluated deck/bottom samples on a common normalized lateral grid, rather than pairing profile control-point arrays. Default `1` preserves station-only ring density.
+- Test coverage includes both board product fixtures, asymmetric V profile, curve-backed-profile rejection, densification ring count, positive signed volume and invalid sampling.
+- CI: [run 45913190338](https://github.com/Rolpse/wingshape_cad/actions/runs/45913190338), **75 tests passed** on commit `9dcd91bc3eb34dc326c4974a7557ea8b8ebef41c`.
+- This remains an additive mesh prototype; no spline/B-Rep generation or geometric fold/self-intersection validation is claimed.
