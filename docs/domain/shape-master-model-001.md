@@ -1,6 +1,6 @@
 # SurfWing Shape Master Model 001
 
-**Status:** domain-schema proposal (v0.1; not implemented)  
+**Status:** domain proposal; structural schema v0.1.0 implemented, provisional Python semantic validator; not a complete CAD kernel  
 **Date:** 2026-11-26  
 **Repository:** `Rolpse/wingshape_cad`  
 **Scope:** kernel-neutral source-of-truth model for surfboards, wingfoil boards and hydrofoils.
@@ -135,7 +135,7 @@ Mass, buoyancy and hydrodynamic performance are not inferred from geometry alone
 
 ## 10. Illustrative versioned document shape
 
-The following is a structural sketch, not a complete JSON Schema or a valid ready-to-import design. Exact field schemas, migration rules and requiredness are the next implementation work.
+The following is a structural sketch. The exact structural contract is now defined in the versioned JSON Schema; semantic validation and migration coverage remain partial. See [Shape Document Schema 0.1.0 implementation record](shape-document-schema-implementation-001.md).
 
 ```json
 {
@@ -204,4 +204,13 @@ For `product_kind=surfboard`, foil mounts/assembly may be absent. For `wingfoil_
 - Issue #7: section-loft path exists additively; JSON, longitudinal profile interpolation, integration and full test/CI verification remain pending.
 - Draft PR #6: architecture proposal is still unmerged; review its contracts against this schema before implementation.
 
-**Next milestone:** formal JSON Schema + serializer/validator + legacy import adapter, followed by round-trip fixtures for a surfboard, wingfoil board and multi-component foil. Do not build UI or kernel-specific topology around an unreviewed schema.
+**Next milestone (completed in part):** structural JSON Schema 0.1.0, provisional Python semantic validator, legacy station adapter and surfboard/wingfoil-board/foil fixtures are committed. CI acceptance is still pending. Next work is test-gated validator refinement and integration with the section-loft milestone; do not build UI or kernel-specific topology around an unreviewed schema.
+
+
+## 13. Schema implementation checkpoint (2026-11-27)
+
+- Structural schema: `schemas/shape-document-0.1.0.schema.json` (Draft 2020-12).
+- Provisional runtime: `src/domain/shape_document.py` uses stdlib semantic checks and optional jsonschema validation. It does not decide the long-term Python/C++ source-of-truth boundary.
+- Fixtures: surfboard, wingfoil board and multi-component foil under `examples/domain/`.
+- Implementation limitations and test matrix: [shape-document-schema-implementation-001.md](shape-document-schema-implementation-001.md).
+- Tests were authored and CI workflow now installs `jsonschema`; actual CI result for the new commit sequence must be observed before declaring acceptance.
