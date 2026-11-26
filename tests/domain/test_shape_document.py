@@ -115,6 +115,22 @@ class ShapeDocumentSchemaTests(unittest.TestCase):
         with self.assertRaises(ShapeDocumentError):
             apply_variant(base,variant)
 
+    def test_foil_station_frame_span_projection_must_match(self):
+        doc=fixture("foil-assembly-0.1.json")
+        component=doc["foil_assembly"]["components"][0]
+        station=component["stations"][0]
+        frame=next(fr for fr in doc["frames"] if fr["id"]==station["frame_id"])
+        frame["origin_mm"][1]+=10
+        self.assertTrue(any("frame origin span projection" in e for e in validate_document(doc)))
+
+    def test_foil_section_frame_normal_must_align_with_span_axis(self):
+        doc=fixture("foil-assembly-0.1.json")
+        component=doc["foil_assembly"]["components"][0]
+        station=component["stations"][0]
+        frame=next(fr for fr in doc["frames"] if fr["id"]==station["frame_id"])
+        frame["basis_axes"]=[[1,0,0],[0,1,0],[0,0,1]]
+        self.assertTrue(any("section-frame normal must align" in e for e in validate_document(doc)))
+
     def test_foil_attachment_cycle_rejected(self):
         doc=fixture("foil-assembly-0.1.json")
         comps=doc["foil_assembly"]["components"]
