@@ -1,0 +1,1913 @@
+{
+  "document_type": "surfwing.shape",
+  "schema_version": "0.1.0",
+  "model_id": "model-foil-assembly",
+  "name": "Four-component foil assembly example",
+  "product_kind": "foil",
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "coordinate_system": {
+    "handedness": "right",
+    "x": "nose_to_tail_positive_aft",
+    "y": "centerline_to_starboard_positive",
+    "z": "bottom_to_deck_positive_up"
+  },
+  "frames": [
+    {
+      "id": "foil-frame-global",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "frame-main-wing",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "component-main-wing-station-frame-0",
+      "origin_mm": [
+        0,
+        -400,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "component-main-wing-station-frame-1",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "component-main-wing-station-frame-2",
+      "origin_mm": [
+        0,
+        400,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-fuselage",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "component-fuselage-station-frame-0",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "component-fuselage-station-frame-1",
+      "origin_mm": [
+        300,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "component-fuselage-station-frame-2",
+      "origin_mm": [
+        600,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-stabilizer",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "component-stabilizer-station-frame-0",
+      "origin_mm": [
+        0,
+        -180,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "component-stabilizer-station-frame-1",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "component-stabilizer-station-frame-2",
+      "origin_mm": [
+        0,
+        180,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "frame-mast",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "component-mast-station-frame-0",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "component-mast-station-frame-1",
+      "origin_mm": [
+        0,
+        0,
+        325
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "component-mast-station-frame-2",
+      "origin_mm": [
+        0,
+        0,
+        650
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ],
+  "curves": [
+    {
+      "id": "component-main-wing-outline",
+      "role": "main_wing-planform",
+      "dimension": 2,
+      "frame_id": "frame-main-wing",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-main-wing-outline-a0",
+          "position": [
+            0,
+            -400
+          ],
+          "incoming_handle": [
+            0,
+            -400
+          ],
+          "outgoing_handle": [
+            0,
+            -400
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-outline-a1",
+          "position": [
+            90,
+            -400
+          ],
+          "incoming_handle": [
+            90,
+            -400
+          ],
+          "outgoing_handle": [
+            90,
+            -400
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-outline-a2",
+          "position": [
+            130,
+            0
+          ],
+          "incoming_handle": [
+            130,
+            0
+          ],
+          "outgoing_handle": [
+            130,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-outline-a3",
+          "position": [
+            100,
+            400
+          ],
+          "incoming_handle": [
+            100,
+            400
+          ],
+          "outgoing_handle": [
+            100,
+            400
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-outline-a4",
+          "position": [
+            0,
+            400
+          ],
+          "incoming_handle": [
+            0,
+            400
+          ],
+          "outgoing_handle": [
+            0,
+            400
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-main-wing-section-0",
+      "role": "main_wing-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-main-wing-station-frame-0",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-main-wing-section-0-a0",
+          "position": [
+            160,
+            0
+          ],
+          "incoming_handle": [
+            160,
+            0
+          ],
+          "outgoing_handle": [
+            160,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-0-a1",
+          "position": [
+            88,
+            8.8
+          ],
+          "incoming_handle": [
+            88,
+            8.8
+          ],
+          "outgoing_handle": [
+            88,
+            8.8
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-0-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-0-a3",
+          "position": [
+            88,
+            -8.8
+          ],
+          "incoming_handle": [
+            88,
+            -8.8
+          ],
+          "outgoing_handle": [
+            88,
+            -8.8
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-main-wing-section-1",
+      "role": "main_wing-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-main-wing-station-frame-1",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-main-wing-section-1-a0",
+          "position": [
+            115.19999999999999,
+            0
+          ],
+          "incoming_handle": [
+            115.19999999999999,
+            0
+          ],
+          "outgoing_handle": [
+            115.19999999999999,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-1-a1",
+          "position": [
+            63.36,
+            6.335999999999999
+          ],
+          "incoming_handle": [
+            63.36,
+            6.335999999999999
+          ],
+          "outgoing_handle": [
+            63.36,
+            6.335999999999999
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-1-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-1-a3",
+          "position": [
+            63.36,
+            -6.335999999999999
+          ],
+          "incoming_handle": [
+            63.36,
+            -6.335999999999999
+          ],
+          "outgoing_handle": [
+            63.36,
+            -6.335999999999999
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-main-wing-section-2",
+      "role": "main_wing-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-main-wing-station-frame-2",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-main-wing-section-2-a0",
+          "position": [
+            115.19999999999999,
+            0
+          ],
+          "incoming_handle": [
+            115.19999999999999,
+            0
+          ],
+          "outgoing_handle": [
+            115.19999999999999,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-2-a1",
+          "position": [
+            63.36,
+            6.335999999999999
+          ],
+          "incoming_handle": [
+            63.36,
+            6.335999999999999
+          ],
+          "outgoing_handle": [
+            63.36,
+            6.335999999999999
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-2-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-main-wing-section-2-a3",
+          "position": [
+            63.36,
+            -6.335999999999999
+          ],
+          "incoming_handle": [
+            63.36,
+            -6.335999999999999
+          ],
+          "outgoing_handle": [
+            63.36,
+            -6.335999999999999
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-fuselage-outline",
+      "role": "fuselage-planform",
+      "dimension": 2,
+      "frame_id": "frame-fuselage",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-fuselage-outline-a0",
+          "position": [
+            0,
+            -20
+          ],
+          "incoming_handle": [
+            0,
+            -20
+          ],
+          "outgoing_handle": [
+            0,
+            -20
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-outline-a1",
+          "position": [
+            600,
+            -20
+          ],
+          "incoming_handle": [
+            600,
+            -20
+          ],
+          "outgoing_handle": [
+            600,
+            -20
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-outline-a2",
+          "position": [
+            600,
+            20
+          ],
+          "incoming_handle": [
+            600,
+            20
+          ],
+          "outgoing_handle": [
+            600,
+            20
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-outline-a3",
+          "position": [
+            0,
+            20
+          ],
+          "incoming_handle": [
+            0,
+            20
+          ],
+          "outgoing_handle": [
+            0,
+            20
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-fuselage-section-0",
+      "role": "fuselage-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-fuselage-station-frame-0",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-fuselage-section-0-a0",
+          "position": [
+            80,
+            0
+          ],
+          "incoming_handle": [
+            80,
+            0
+          ],
+          "outgoing_handle": [
+            80,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-0-a1",
+          "position": [
+            44,
+            4.4
+          ],
+          "incoming_handle": [
+            44,
+            4.4
+          ],
+          "outgoing_handle": [
+            44,
+            4.4
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-0-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-0-a3",
+          "position": [
+            44,
+            -4.4
+          ],
+          "incoming_handle": [
+            44,
+            -4.4
+          ],
+          "outgoing_handle": [
+            44,
+            -4.4
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-fuselage-section-1",
+      "role": "fuselage-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-fuselage-station-frame-1",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-fuselage-section-1-a0",
+          "position": [
+            62.400000000000006,
+            0
+          ],
+          "incoming_handle": [
+            62.400000000000006,
+            0
+          ],
+          "outgoing_handle": [
+            62.400000000000006,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-1-a1",
+          "position": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-1-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-1-a3",
+          "position": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-fuselage-section-2",
+      "role": "fuselage-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-fuselage-station-frame-2",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-fuselage-section-2-a0",
+          "position": [
+            62.400000000000006,
+            0
+          ],
+          "incoming_handle": [
+            62.400000000000006,
+            0
+          ],
+          "outgoing_handle": [
+            62.400000000000006,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-2-a1",
+          "position": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-2-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-fuselage-section-2-a3",
+          "position": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-stabilizer-outline",
+      "role": "stabilizer-planform",
+      "dimension": 2,
+      "frame_id": "frame-stabilizer",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-stabilizer-outline-a0",
+          "position": [
+            0,
+            -180
+          ],
+          "incoming_handle": [
+            0,
+            -180
+          ],
+          "outgoing_handle": [
+            0,
+            -180
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-outline-a1",
+          "position": [
+            70,
+            -180
+          ],
+          "incoming_handle": [
+            70,
+            -180
+          ],
+          "outgoing_handle": [
+            70,
+            -180
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-outline-a2",
+          "position": [
+            90,
+            0
+          ],
+          "incoming_handle": [
+            90,
+            0
+          ],
+          "outgoing_handle": [
+            90,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-outline-a3",
+          "position": [
+            70,
+            180
+          ],
+          "incoming_handle": [
+            70,
+            180
+          ],
+          "outgoing_handle": [
+            70,
+            180
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-outline-a4",
+          "position": [
+            0,
+            180
+          ],
+          "incoming_handle": [
+            0,
+            180
+          ],
+          "outgoing_handle": [
+            0,
+            180
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-stabilizer-section-0",
+      "role": "stabilizer-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-stabilizer-station-frame-0",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-stabilizer-section-0-a0",
+          "position": [
+            80,
+            0
+          ],
+          "incoming_handle": [
+            80,
+            0
+          ],
+          "outgoing_handle": [
+            80,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-0-a1",
+          "position": [
+            44,
+            4.4
+          ],
+          "incoming_handle": [
+            44,
+            4.4
+          ],
+          "outgoing_handle": [
+            44,
+            4.4
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-0-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-0-a3",
+          "position": [
+            44,
+            -4.4
+          ],
+          "incoming_handle": [
+            44,
+            -4.4
+          ],
+          "outgoing_handle": [
+            44,
+            -4.4
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-stabilizer-section-1",
+      "role": "stabilizer-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-stabilizer-station-frame-1",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-stabilizer-section-1-a0",
+          "position": [
+            62.400000000000006,
+            0
+          ],
+          "incoming_handle": [
+            62.400000000000006,
+            0
+          ],
+          "outgoing_handle": [
+            62.400000000000006,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-1-a1",
+          "position": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-1-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-1-a3",
+          "position": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-stabilizer-section-2",
+      "role": "stabilizer-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-stabilizer-station-frame-2",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-stabilizer-section-2-a0",
+          "position": [
+            62.400000000000006,
+            0
+          ],
+          "incoming_handle": [
+            62.400000000000006,
+            0
+          ],
+          "outgoing_handle": [
+            62.400000000000006,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-2-a1",
+          "position": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            3.4320000000000004
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-2-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-stabilizer-section-2-a3",
+          "position": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "incoming_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "outgoing_handle": [
+            34.32000000000001,
+            -3.4320000000000004
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-mast-outline",
+      "role": "mast-planform",
+      "dimension": 2,
+      "frame_id": "frame-mast",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-mast-outline-a0",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-outline-a1",
+          "position": [
+            35,
+            0
+          ],
+          "incoming_handle": [
+            35,
+            0
+          ],
+          "outgoing_handle": [
+            35,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-outline-a2",
+          "position": [
+            25,
+            650
+          ],
+          "incoming_handle": [
+            25,
+            650
+          ],
+          "outgoing_handle": [
+            25,
+            650
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-outline-a3",
+          "position": [
+            15,
+            650
+          ],
+          "incoming_handle": [
+            15,
+            650
+          ],
+          "outgoing_handle": [
+            15,
+            650
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-mast-section-0",
+      "role": "mast-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-mast-station-frame-0",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-mast-section-0-a0",
+          "position": [
+            70,
+            0
+          ],
+          "incoming_handle": [
+            70,
+            0
+          ],
+          "outgoing_handle": [
+            70,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-0-a1",
+          "position": [
+            38.5,
+            3.85
+          ],
+          "incoming_handle": [
+            38.5,
+            3.85
+          ],
+          "outgoing_handle": [
+            38.5,
+            3.85
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-0-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-0-a3",
+          "position": [
+            38.5,
+            -3.85
+          ],
+          "incoming_handle": [
+            38.5,
+            -3.85
+          ],
+          "outgoing_handle": [
+            38.5,
+            -3.85
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-mast-section-1",
+      "role": "mast-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-mast-station-frame-1",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-mast-section-1-a0",
+          "position": [
+            54.6,
+            0
+          ],
+          "incoming_handle": [
+            54.6,
+            0
+          ],
+          "outgoing_handle": [
+            54.6,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-1-a1",
+          "position": [
+            30.030000000000005,
+            3.003
+          ],
+          "incoming_handle": [
+            30.030000000000005,
+            3.003
+          ],
+          "outgoing_handle": [
+            30.030000000000005,
+            3.003
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-1-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-1-a3",
+          "position": [
+            30.030000000000005,
+            -3.003
+          ],
+          "incoming_handle": [
+            30.030000000000005,
+            -3.003
+          ],
+          "outgoing_handle": [
+            30.030000000000005,
+            -3.003
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    },
+    {
+      "id": "component-mast-section-2",
+      "role": "mast-airfoil-section",
+      "dimension": 2,
+      "frame_id": "component-mast-station-frame-2",
+      "closed": true,
+      "anchors": [
+        {
+          "id": "component-mast-section-2-a0",
+          "position": [
+            54.6,
+            0
+          ],
+          "incoming_handle": [
+            54.6,
+            0
+          ],
+          "outgoing_handle": [
+            54.6,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-2-a1",
+          "position": [
+            30.030000000000005,
+            3.003
+          ],
+          "incoming_handle": [
+            30.030000000000005,
+            3.003
+          ],
+          "outgoing_handle": [
+            30.030000000000005,
+            3.003
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-2-a2",
+          "position": [
+            0,
+            0
+          ],
+          "incoming_handle": [
+            0,
+            0
+          ],
+          "outgoing_handle": [
+            0,
+            0
+          ],
+          "continuity": "corner"
+        },
+        {
+          "id": "component-mast-section-2-a3",
+          "position": [
+            30.030000000000005,
+            -3.003
+          ],
+          "incoming_handle": [
+            30.030000000000005,
+            -3.003
+          ],
+          "outgoing_handle": [
+            30.030000000000005,
+            -3.003
+          ],
+          "continuity": "corner"
+        }
+      ],
+      "revision": 0
+    }
+  ],
+  "board": null,
+  "foil_assembly": {
+    "id": "assembly-foil",
+    "components": [
+      {
+        "id": "component-main-wing",
+        "role": "main_wing",
+        "frame_id": "frame-main-wing",
+        "attachment": {
+          "parent_component_id": null,
+          "translation_mm": [
+            0,
+            0,
+            0
+          ],
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "outline_curve_ids": [
+          "component-main-wing-outline"
+        ],
+        "stations": [
+          {
+            "id": "component-main-wing-station-0",
+            "span_mm": -400,
+            "frame_id": "component-main-wing-station-frame-0",
+            "section_curve_id": "component-main-wing-section-0",
+            "chord_mm": 160,
+            "twist_rad": -0.04,
+            "sweep_mm": 40
+          },
+          {
+            "id": "component-main-wing-station-1",
+            "span_mm": 0,
+            "frame_id": "component-main-wing-station-frame-1",
+            "section_curve_id": "component-main-wing-section-1",
+            "chord_mm": 115.19999999999999,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          },
+          {
+            "id": "component-main-wing-station-2",
+            "span_mm": 400,
+            "frame_id": "component-main-wing-station-frame-2",
+            "section_curve_id": "component-main-wing-section-2",
+            "chord_mm": 115.19999999999999,
+            "twist_rad": 0.04,
+            "sweep_mm": 40
+          }
+        ],
+        "material": {
+          "type": "composite",
+          "note": "illustrative only"
+        }
+      },
+      {
+        "id": "component-fuselage",
+        "role": "fuselage",
+        "frame_id": "frame-fuselage",
+        "attachment": {
+          "parent_component_id": "component-main-wing",
+          "translation_mm": [
+            0,
+            0,
+            0
+          ],
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "outline_curve_ids": [
+          "component-fuselage-outline"
+        ],
+        "stations": [
+          {
+            "id": "component-fuselage-station-0",
+            "span_mm": 0,
+            "frame_id": "component-fuselage-station-frame-0",
+            "section_curve_id": "component-fuselage-section-0",
+            "chord_mm": 80,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          },
+          {
+            "id": "component-fuselage-station-1",
+            "span_mm": 300,
+            "frame_id": "component-fuselage-station-frame-1",
+            "section_curve_id": "component-fuselage-section-1",
+            "chord_mm": 62.400000000000006,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          },
+          {
+            "id": "component-fuselage-station-2",
+            "span_mm": 600,
+            "frame_id": "component-fuselage-station-frame-2",
+            "section_curve_id": "component-fuselage-section-2",
+            "chord_mm": 62.400000000000006,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          }
+        ],
+        "material": {
+          "type": "composite",
+          "note": "illustrative only"
+        }
+      },
+      {
+        "id": "component-stabilizer",
+        "role": "stabilizer",
+        "frame_id": "frame-stabilizer",
+        "attachment": {
+          "parent_component_id": "component-fuselage",
+          "translation_mm": [
+            0,
+            0,
+            0
+          ],
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "outline_curve_ids": [
+          "component-stabilizer-outline"
+        ],
+        "stations": [
+          {
+            "id": "component-stabilizer-station-0",
+            "span_mm": -180,
+            "frame_id": "component-stabilizer-station-frame-0",
+            "section_curve_id": "component-stabilizer-section-0",
+            "chord_mm": 80,
+            "twist_rad": 0.02,
+            "sweep_mm": 25
+          },
+          {
+            "id": "component-stabilizer-station-1",
+            "span_mm": 0,
+            "frame_id": "component-stabilizer-station-frame-1",
+            "section_curve_id": "component-stabilizer-section-1",
+            "chord_mm": 62.400000000000006,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          },
+          {
+            "id": "component-stabilizer-station-2",
+            "span_mm": 180,
+            "frame_id": "component-stabilizer-station-frame-2",
+            "section_curve_id": "component-stabilizer-section-2",
+            "chord_mm": 62.400000000000006,
+            "twist_rad": -0.02,
+            "sweep_mm": 25
+          }
+        ],
+        "material": {
+          "type": "composite",
+          "note": "illustrative only"
+        }
+      },
+      {
+        "id": "component-mast",
+        "role": "mast",
+        "frame_id": "frame-mast",
+        "attachment": {
+          "parent_component_id": "component-main-wing",
+          "translation_mm": [
+            0,
+            0,
+            0
+          ],
+          "quaternion_wxyz": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "outline_curve_ids": [
+          "component-mast-outline"
+        ],
+        "stations": [
+          {
+            "id": "component-mast-station-0",
+            "span_mm": 0,
+            "frame_id": "component-mast-station-frame-0",
+            "section_curve_id": "component-mast-section-0",
+            "chord_mm": 70,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          },
+          {
+            "id": "component-mast-station-1",
+            "span_mm": 325,
+            "frame_id": "component-mast-station-frame-1",
+            "section_curve_id": "component-mast-section-1",
+            "chord_mm": 54.6,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          },
+          {
+            "id": "component-mast-station-2",
+            "span_mm": 650,
+            "frame_id": "component-mast-station-frame-2",
+            "section_curve_id": "component-mast-section-2",
+            "chord_mm": 54.6,
+            "twist_rad": 0,
+            "sweep_mm": 0
+          }
+        ],
+        "material": {
+          "type": "composite",
+          "note": "illustrative only"
+        }
+      }
+    ]
+  },
+  "feature_graph": {
+    "nodes": [],
+    "edges": []
+  },
+  "surface_recipe": {
+    "patches": [],
+    "shared_boundaries": []
+  },
+  "tolerance_profile": {
+    "curve_fit_mm": 0.05,
+    "section_fit_mm": 0.05,
+    "g0_mm": 0.05,
+    "g1_rad": 0.008726646259971648,
+    "g2_mm_inv": 0.001,
+    "sewing_mm": 0.05,
+    "tessellation_chord_mm": 0.5,
+    "tessellation_angle_rad": 0.08726646259971647,
+    "manufacturing_mm": 0.5
+  },
+  "variants": [],
+  "derived": {
+    "source_revision": null,
+    "properties": [],
+    "validation": []
+  }
+}
