@@ -201,7 +201,7 @@ For `product_kind=surfboard`, foil mounts/assembly may be absent. For `wingfoil_
 ## 12. Blockers / sequencing
 
 - Issue #3: source-of-truth and Python/C++ integration decision remains open. This spec avoids choosing the implementation.
-- Issue #7: section-loft path exists additively; JSON, longitudinal profile interpolation, integration and full test/CI verification remain pending.
+- Issue #7: analytic section-loft tests now pass CI; JSON profile integration into the loft, longitudinal interpolation, fold/self-intersection validation and integration with the legacy generator remain pending.
 - Draft PR #6: architecture proposal is still unmerged; review its contracts against this schema before implementation.
 
 **Next milestone (completed in part):** structural JSON Schema 0.1.0, provisional Python semantic validator, legacy station adapter and surfboard/wingfoil-board/foil fixtures are committed. CI acceptance is still pending. Next work is test-gated validator refinement and integration with the section-loft milestone; do not build UI or kernel-specific topology around an unreviewed schema.
