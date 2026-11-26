@@ -323,6 +323,7 @@ def validate_document(document: dict[str, Any], *, use_json_schema: bool = True)
         for c in components if isinstance(components,list) else []:
             if not isinstance(c,dict): continue
             component_ids.add(c.get("id"))
+            if c.get("span_axis") not in {"x","y","z"}: errors.append(f"foil component {c.get('id')}: span_axis must be x, y or z")
             if c.get("frame_id") not in frame_ids: errors.append(f"foil component {c.get('id')}: missing frame")
             attach=c.get("attachment",{})
             q=attach.get("quaternion_wxyz",[])
