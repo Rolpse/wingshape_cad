@@ -285,9 +285,23 @@ def validate_document(document: dict[str, Any], *, use_json_schema: bool = True)
                         deck=s.get("bottom_z_mm",0)+s.get("thickness_mm",0)+_profile_eval(s.get("deck_profile",{}),u)
                         if deck-bottom<=0.1: errors.append(f"station {sid}: deck-bottom crossing/thickness <=0.1 mm at u={u:.2f}"); break
                 except Exception as exc: errors.append(f"station {sid}: invalid profile parameters ({exc})")
-            for pf in (s.get("deck_profile",{}),s.get("bottom_profile",{})):
+            profiles=(s.get("deck_profile",{}),s.get("bottom_profile",{}))
+            for pf in profiles:
                 cid=pf.get("curve_id")
-                if cid and cid not in curve_by_id: errors.append(f"station {sid}: profile references missing curve {cid}")
+                if cid:
+                    section_curve=curve_by_id.get(cid)
+                    if not section_curve: errors.append(f"station {sid}: profile references missing curve {cid}")
+                    elif section_curve.get("dimension")!=2: errors.append(f"station {sid}: profile curve {cid} must be 2D")
+            if s.get("symmetry","symmetric")=="symmetric" and not any(p.get("curve_id") for p in profiles):
+                try:
+                    for profile in profiles:
+                        for i in range(51):
+                            u=i/50
+                            if abs(_profile_eval(profile,u)-_profile_eval(profile,-u))>1e-8:
+                                errors.append(f"station {sid}: asymmetric profile declared symmetric")
+                                raise StopIteration
+                except StopIteration:
+                    pass
         mounts=board.get("mounts",[])
         register(mounts,"board mounts")
         for m in mounts if isinstance(mounts,list) else []:
@@ -303,6 +317,7 @@ def validate_document(document: dict[str, Any], *, use_json_schema: bool = True)
             if cid not in curve_by_id: errors.append(f"rail boundary references missing curve {cid}")
 
     if isinstance(foil,dict):
+        register([foil],"foil assembly")
         components=foil.get("components",[])
         register(components,"foil components")
         for c in components if isinstance(components,list) else []:
@@ -315,7 +330,9 @@ def validate_document(document: dict[str, Any], *, use_json_schema: bool = True)
             parent=attach.get("parent_component_id")
             if parent and parent not in {x.get("id") for x in components if isinstance(x,dict)}: errors.append(f"foil component {c.get('id')}: parent component {parent} missing")
             for cid in c.get("outline_curve_ids",[]):
-                if cid not in curve_by_id: errors.append(f"foil component {c.get('id')}: outline curve {cid} missing")
+                outline_curve=curve_by_id.get(cid)
+                if not outline_curve: errors.append(f"foil component {c.get('id')}: outline curve {cid} missing")
+                elif outline_curve.get("dimension")!=2 or not outline_curve.get("closed"): errors.append(f"foil component {c.get('id')}: outline curve {cid} must be closed 2D")
             stations=c.get("stations",[])
             register(stations,f"foil stations {c.get('id')}")
             prev=None
