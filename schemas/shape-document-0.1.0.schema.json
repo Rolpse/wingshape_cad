@@ -1,0 +1,1119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Rolpse/wingshape_cad/blob/main/schemas/shape-document-0.1.0.schema.json",
+  "title": "SurfWing Shape Document 0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document_type",
+    "schema_version",
+    "model_id",
+    "name",
+    "product_kind",
+    "units",
+    "coordinate_system",
+    "frames",
+    "curves",
+    "feature_graph",
+    "surface_recipe",
+    "tolerance_profile",
+    "variants",
+    "derived"
+  ],
+  "properties": {
+    "document_type": {
+      "const": "surfwing.shape"
+    },
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "model_id": {
+      "$ref": "#/$defs/id"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "product_kind": {
+      "enum": [
+        "surfboard",
+        "wingfoil_board",
+        "foil"
+      ]
+    },
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "length": {
+          "const": "mm"
+        },
+        "angle": {
+          "const": "rad"
+        }
+      },
+      "required": [
+        "length",
+        "angle"
+      ]
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "handedness": {
+          "const": "right"
+        },
+        "x": {
+          "const": "nose_to_tail_positive_aft"
+        },
+        "y": {
+          "const": "centerline_to_starboard_positive"
+        },
+        "z": {
+          "const": "bottom_to_deck_positive_up"
+        }
+      },
+      "required": [
+        "handedness",
+        "x",
+        "y",
+        "z"
+      ]
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/frame"
+      }
+    },
+    "curves": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/curve"
+      }
+    },
+    "board": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/board"
+        }
+      ]
+    },
+    "foil_assembly": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/foilAssembly"
+        }
+      ]
+    },
+    "feature_graph": {
+      "$ref": "#/$defs/featureGraph"
+    },
+    "surface_recipe": {
+      "$ref": "#/$defs/surfaceRecipe"
+    },
+    "tolerance_profile": {
+      "$ref": "#/$defs/toleranceProfile"
+    },
+    "variants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/variant"
+      }
+    },
+    "derived": {
+      "$ref": "#/$defs/derived"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "product_kind": {
+            "enum": [
+              "surfboard",
+              "wingfoil_board"
+            ]
+          }
+        },
+        "required": [
+          "product_kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "board"
+        ],
+        "properties": {
+          "board": {
+            "not": {
+              "type": "null"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "product_kind": {
+            "const": "surfboard"
+          }
+        },
+        "required": [
+          "product_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "foil_assembly": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "product_kind": {
+            "const": "foil"
+          }
+        },
+        "required": [
+          "product_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "board": {
+            "type": "null"
+          },
+          "foil_assembly": {
+            "not": {
+              "type": "null"
+            }
+          }
+        },
+        "required": [
+          "foil_assembly"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "number": {
+      "type": "number"
+    },
+    "vec2": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "vec3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "origin_mm": {
+          "$ref": "#/$defs/vec3"
+        },
+        "basis_axes": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/vec3"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "origin_mm",
+        "basis_axes"
+      ]
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "position": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/vec2"
+            },
+            {
+              "$ref": "#/$defs/vec3"
+            }
+          ]
+        },
+        "incoming_handle": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/vec2"
+            },
+            {
+              "$ref": "#/$defs/vec3"
+            }
+          ]
+        },
+        "outgoing_handle": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/vec2"
+            },
+            {
+              "$ref": "#/$defs/vec3"
+            }
+          ]
+        },
+        "continuity": {
+          "enum": [
+            "corner",
+            "smooth_aligned",
+            "symmetric"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "position",
+        "incoming_handle",
+        "outgoing_handle",
+        "continuity"
+      ]
+    },
+    "curve": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimension": {
+          "enum": [
+            2,
+            3
+          ]
+        },
+        "frame_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "closed": {
+          "type": "boolean"
+        },
+        "anchors": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/anchor"
+          }
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "dimension",
+        "closed",
+        "anchors",
+        "revision"
+      ]
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "flat",
+            "v",
+            "single_concave",
+            "double_concave",
+            "dome",
+            "standing_area"
+          ]
+        },
+        "depth_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "half_width_u": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "center_u": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "left_depth_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "right_depth_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "standing_half_width_u": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "blend_width_u": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "curve_id": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "kind"
+      ]
+    },
+    "station": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "x_mm": {
+          "type": "number"
+        },
+        "frame_id": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "regular",
+            "transition",
+            "tip"
+          ]
+        },
+        "width_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "thickness_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "bottom_z_mm": {
+          "type": "number"
+        },
+        "deck_profile": {
+          "$ref": "#/$defs/profile"
+        },
+        "bottom_profile": {
+          "$ref": "#/$defs/profile"
+        }
+      },
+      "required": [
+        "id",
+        "x_mm",
+        "frame_id",
+        "role",
+        "width_mm",
+        "thickness_mm",
+        "bottom_z_mm",
+        "deck_profile",
+        "bottom_profile"
+      ]
+    },
+    "mount": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "foil_track",
+            "footstrap",
+            "handle",
+            "fin",
+            "insert",
+            "custom"
+          ]
+        },
+        "frame_id": {
+          "$ref": "#/$defs/id"
+        },
+        "position_mm": {
+          "$ref": "#/$defs/vec3"
+        },
+        "target_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "frame_id",
+        "position_mm",
+        "parameters"
+      ]
+    },
+    "endCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "shape_family": {
+          "enum": [
+            "round",
+            "square",
+            "pintail",
+            "swallow",
+            "squash",
+            "custom"
+          ]
+        },
+        "boundary_curve_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "shape_family",
+        "parameters"
+      ]
+    },
+    "board": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "outline_curve_id": {
+          "$ref": "#/$defs/id"
+        },
+        "rocker_curve_id": {
+          "$ref": "#/$defs/id"
+        },
+        "stringer_curve_id": {
+          "$ref": "#/$defs/id"
+        },
+        "stations": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/station"
+          }
+        },
+        "rail_definition": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "boundary_curve_ids": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/id"
+              }
+            },
+            "transition": {
+              "enum": [
+                "hard",
+                "g0",
+                "g1",
+                "g2"
+              ]
+            },
+            "parameters": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "boundary_curve_ids",
+            "transition"
+          ]
+        },
+        "nose": {
+          "$ref": "#/$defs/endCondition"
+        },
+        "tail": {
+          "$ref": "#/$defs/endCondition"
+        },
+        "mounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mount"
+          }
+        },
+        "legacy_source": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "outline_curve_id",
+        "stations",
+        "rail_definition",
+        "nose",
+        "tail",
+        "mounts"
+      ]
+    },
+    "foilStation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "span_mm": {
+          "type": "number"
+        },
+        "frame_id": {
+          "$ref": "#/$defs/id"
+        },
+        "section_curve_id": {
+          "$ref": "#/$defs/id"
+        },
+        "chord_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "twist_rad": {
+          "type": "number"
+        },
+        "sweep_mm": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "span_mm",
+        "frame_id",
+        "section_curve_id",
+        "chord_mm",
+        "twist_rad",
+        "sweep_mm"
+      ]
+    },
+    "foilComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "role": {
+          "enum": [
+            "main_wing",
+            "stabilizer",
+            "mast",
+            "fuselage",
+            "winglet",
+            "custom"
+          ]
+        },
+        "frame_id": {
+          "$ref": "#/$defs/id"
+        },
+        "attachment": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "parent_component_id": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/id"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "translation_mm": {
+              "$ref": "#/$defs/vec3"
+            },
+            "quaternion_wxyz": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 4,
+              "maxItems": 4
+            }
+          },
+          "required": [
+            "parent_component_id",
+            "translation_mm",
+            "quaternion_wxyz"
+          ]
+        },
+        "outline_curve_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "stations": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/foilStation"
+          }
+        },
+        "material": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "frame_id",
+        "attachment",
+        "outline_curve_ids",
+        "stations"
+      ]
+    },
+    "foilAssembly": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/foilComponent"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "components"
+      ]
+    },
+    "featureNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "source_curve",
+            "station",
+            "loft",
+            "patch",
+            "mount",
+            "measurement",
+            "mesh",
+            "custom"
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "inputs",
+        "outputs",
+        "parameters",
+        "revision",
+        "enabled"
+      ]
+    },
+    "featureGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/featureNode"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "from_node_id": {
+                "$ref": "#/$defs/id"
+              },
+              "to_node_id": {
+                "$ref": "#/$defs/id"
+              }
+            },
+            "required": [
+              "from_node_id",
+              "to_node_id"
+            ]
+          }
+        }
+      },
+      "required": [
+        "nodes",
+        "edges"
+      ]
+    },
+    "surfaceRecipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "role": {
+                "type": "string"
+              },
+              "boundary_curve_ids": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/id"
+                }
+              },
+              "station_ids": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/id"
+                }
+              },
+              "continuity": {
+                "enum": [
+                  "g0",
+                  "g1",
+                  "g2"
+                ]
+              },
+              "method": {
+                "enum": [
+                  "loft",
+                  "sweep",
+                  "interpolate",
+                  "custom"
+                ]
+              },
+              "parameters": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "id",
+              "role",
+              "boundary_curve_ids",
+              "station_ids",
+              "continuity",
+              "method",
+              "parameters"
+            ]
+          }
+        },
+        "shared_boundaries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "curve_id": {
+                "$ref": "#/$defs/id"
+              },
+              "patch_ids": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "$ref": "#/$defs/id"
+                }
+              }
+            },
+            "required": [
+              "curve_id",
+              "patch_ids"
+            ]
+          }
+        }
+      },
+      "required": [
+        "patches",
+        "shared_boundaries"
+      ]
+    },
+    "toleranceProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "curve_fit_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "section_fit_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "g0_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "g1_rad": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "g2_mm_inv": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "sewing_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "tessellation_chord_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "tessellation_angle_rad": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "manufacturing_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "curve_fit_mm",
+        "section_fit_mm",
+        "g0_mm",
+        "g1_rad",
+        "g2_mm_inv",
+        "sewing_mm",
+        "tessellation_chord_mm",
+        "tessellation_angle_rad",
+        "manufacturing_mm"
+      ]
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "target_id": {
+                "$ref": "#/$defs/id"
+              },
+              "operation": {
+                "enum": [
+                  "set",
+                  "remove"
+                ]
+              },
+              "field_path": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "value": {}
+            },
+            "required": [
+              "target_id",
+              "operation",
+              "field_path"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "base_revision",
+        "changes"
+      ]
+    },
+    "derived": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_revision": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {},
+              "unit": {
+                "type": "string"
+              },
+              "algorithm_version": {
+                "type": "string"
+              },
+              "model_revision": {
+                "type": "string"
+              },
+              "quality": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "value",
+              "unit",
+              "algorithm_version",
+              "model_revision",
+              "quality"
+            ]
+          }
+        },
+        "validation": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ]
+              },
+              "entity_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "severity"
+            ]
+          }
+        }
+      },
+      "required": [
+        "source_revision",
+        "properties",
+        "validation"
+      ]
+    }
+  }
+}
