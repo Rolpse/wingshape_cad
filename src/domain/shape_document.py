@@ -325,6 +325,12 @@ def validate_document(document: dict[str, Any], *, use_json_schema: bool = True)
             component_ids.add(c.get("id"))
             if c.get("span_axis") not in {"x","y","z"}: errors.append(f"foil component {c.get('id')}: span_axis must be x, y or z")
             if c.get("frame_id") not in frame_ids: errors.append(f"foil component {c.get('id')}: missing frame")
+            component_frame=next((fr for fr in frames if isinstance(fr,dict) and fr.get("id")==c.get("frame_id")),None)
+            axis_index={"x":0,"y":1,"z":2}.get(c.get("span_axis"))
+            if component_frame and axis_index is not None and isinstance(component_frame.get("basis_axes"),list) and len(component_frame["basis_axes"])==3:
+                span_direction=component_frame["basis_axes"][axis_index]
+            else:
+                span_direction=None
             attach=c.get("attachment",{})
             q=attach.get("quaternion_wxyz",[])
             if len(q)==4 and abs(_norm(q)-1)>1e-9: errors.append(f"foil component {c.get('id')}: attachment quaternion must be unit length")
@@ -342,6 +348,15 @@ def validate_document(document: dict[str, Any], *, use_json_schema: bool = True)
                 if prev is not None and st.get("span_mm")<=prev: errors.append(f"foil component {c.get('id')}: span stations not strictly ordered")
                 prev=st.get("span_mm")
                 if st.get("frame_id") not in frame_ids: errors.append(f"foil station {st.get('id')}: missing frame")
+                station_frame=next((fr for fr in frames if isinstance(fr,dict) and fr.get("id")==st.get("frame_id")),None)
+                if span_direction is not None and station_frame and isinstance(station_frame.get("basis_axes"),list) and len(station_frame["basis_axes"])==3:
+                    section_normal=station_frame["basis_axes"][2]
+                    if abs(abs(_dot(section_normal,span_direction))-1)>1e-6:
+                        errors.append(f"foil station {st.get('id')}: section-frame normal must align with component span_axis")
+                    origin_delta=[station_frame["origin_mm"][k]-component_frame["origin_mm"][k] for k in range(3)]
+                    projected_span=_dot(origin_delta,span_direction)
+                    if abs(projected_span-st.get("span_mm",0))>1e-6:
+                        errors.append(f"foil station {st.get('id')}: frame origin span projection {projected_span:g} mm differs from span_mm {st.get('span_mm'):g} mm")
                 sc=curve_by_id.get(st.get("section_curve_id"))
                 if not sc or sc.get("dimension")!=2: errors.append(f"foil station {st.get('id')}: section curve must reference 2D curve")
         # Parent attachment graph must be acyclic.
