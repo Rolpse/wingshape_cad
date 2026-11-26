@@ -87,3 +87,15 @@ No CI result is claimed in this record. The workflow has been updated to install
 - Test coverage includes both board product fixtures, asymmetric V profile, curve-backed-profile rejection, densification ring count, positive signed volume and invalid sampling.
 - CI: [run 45913190338](https://github.com/Rolpse/wingshape_cad/actions/runs/45913190338), **75 tests passed** on commit `9dcd91bc3eb34dc326c4974a7557ea8b8ebef41c`.
 - This remains an additive mesh prototype; no spline/B-Rep generation or geometric fold/self-intersection validation is claimed.
+
+
+## Next gate / blockers
+
+The next geometry-model step is **curve-backed transverse profiles and continuity/fold validation**. It is not safe to invent a second curve identity/evaluator now:
+
+- Editable Bezier curve model is still open PR [#2](../../pull/2); its branch CI is green, but mergeability/review state is unresolved.
+- Surface architecture is still draft PR [#6](../../pull/6); no accepted production patch/B-Rep kernel or G0/G1/G2 measurement implementation.
+- Python/C++ boundary remains unresolved in [Issue #3](../../issues/3).
+- [Issue #7](../../issues/7) tracks profile-curve integration, legacy-generator integration and fold/self-intersection validation.
+
+The schema and additive analytic loft are implemented/tested; pause further schema research until these dependencies move or a concrete issue changes the contract.
