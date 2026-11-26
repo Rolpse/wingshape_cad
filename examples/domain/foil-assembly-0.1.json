@@ -439,6 +439,31 @@
           1
         ]
       ]
+    },
+    {
+      "id": "frame-mast-outline",
+      "origin_mm": [
+        0,
+        0,
+        0
+      ],
+      "basis_axes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
     }
   ],
   "curves": [
@@ -1366,7 +1391,7 @@
       "id": "component-mast-outline",
       "role": "mast-planform",
       "dimension": 2,
-      "frame_id": "frame-mast",
+      "frame_id": "frame-mast-outline",
       "closed": true,
       "anchors": [
         {
@@ -1716,7 +1741,8 @@
         "material": {
           "type": "composite",
           "note": "illustrative only"
-        }
+        },
+        "span_axis": "y"
       },
       {
         "id": "component-fuselage",
@@ -1771,7 +1797,8 @@
         "material": {
           "type": "composite",
           "note": "illustrative only"
-        }
+        },
+        "span_axis": "x"
       },
       {
         "id": "component-stabilizer",
@@ -1826,7 +1853,8 @@
         "material": {
           "type": "composite",
           "note": "illustrative only"
-        }
+        },
+        "span_axis": "y"
       },
       {
         "id": "component-mast",
@@ -1881,7 +1909,8 @@
         "material": {
           "type": "composite",
           "note": "illustrative only"
-        }
+        },
+        "span_axis": "z"
       }
     ]
   },
