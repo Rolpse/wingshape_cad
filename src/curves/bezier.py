@@ -328,16 +328,14 @@ class BezierCurve:
                     p3, _scale(_sub(after.incoming, p3), 1.0 / (1.0 - split_t))
                 )
                 exact_controls = (p0, exact_p1, exact_p2, p3)
-                exact_distances = []
-                for i, target in enumerate(source):
-                    q = i / samples_per_segment
-                    original_t = (
-                        2.0 * q * split_t
-                        if q <= 0.5
-                        else split_t + 2.0 * (q - 0.5) * (1.0 - split_t)
-                    )
-                    actual = evaluate_cubic(*exact_controls, original_t)
-                    exact_distances.append(_length(_sub(actual, target)))
+                exact_fitted = [
+                    evaluate_cubic(*exact_controls, i / samples_per_segment)
+                    for i in range(samples_per_segment + 1)
+                ]
+                exact_distances = (
+                    [polyline_distance(p, exact_fitted) for p in source]
+                    + [polyline_distance(p, source) for p in exact_fitted]
+                )
                 exact_max = max(exact_distances)
                 exact_rms = math.sqrt(
                     sum(d * d for d in exact_distances) / len(exact_distances)
@@ -385,7 +383,9 @@ class BezierCurve:
                 break
 
         _, maximum = errors(alpha, beta)
-        rms = math.sqrt(best[0] / len(source))
+        # The score contains distances in both directions (2N samples).
+        # Divide by the full count so RMS is consistent with the exact branch.
+        rms = math.sqrt(best[0] / (2 * len(source)))
         report = DeletionReport(anchor_id, rms, maximum, max_deviation,
                                 samples_per_segment, maximum <= max_deviation)
         if not report.accepted:
