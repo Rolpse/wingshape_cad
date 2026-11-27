@@ -101,3 +101,14 @@ If any critical gate fails, run the same fixture set against Parasolid/ACIS eval
 - [pyOCCT Python bindings](https://github.com/trelau/pyOCCT)
 - [FreeCAD documentation: topological naming problem](https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Topological_naming_problem.md)
 
+
+
+## Repository checkpoint — 2026-11-27 (No kernel decision update)
+
+**Verified current state:** main commit `ffb78904b45ef72ce26bee46f4498a8dbedc80d8`; main CI run [#76](https://github.com/Rolpse/wingshape_cad/actions/runs/46017140976) completed successfully and its log reports **75 tests passed**. Since the earlier checkpoint, the kernel-neutral shape-document schema/validator and additive document-to-analytic-section-loft adapter have advanced. The adapter interpolates evaluated deck/bottom samples on a shared normalized lateral grid and produces a triangle mesh; the legacy generator remains unchanged.
+
+**Curve candidate:** PR [#2](https://github.com/Rolpse/wingshape_cad/pull/2) is still open, not merged, and currently reports mergeability false. Its latest head `d088ccc86c60f23f6dbf96e928086508d412ff4c` passed [CI run #79](https://github.com/Rolpse/wingshape_cad/actions/runs/46017548012), with **48 tests passed**. PR [#6](https://github.com/Rolpse/wingshape_cad/pull/6) remains draft; its current head CI [run #33](https://github.com/Rolpse/wingshape_cad/actions/runs/45706822426) passed **45 tests**.
+
+**No kernel-selection change:** the new document-loft adapter is still analytic-profile-to-mesh, not B-spline patch generation or B-Rep. It has not demonstrated G0/G1 patch measurements, sewing, offset/Boolean robustness, STEP round-trip, or a kernel adapter. Curve-backed profile evaluation, section continuity and mesh fold/intersection checks can be advanced with the kernel-neutral curve contract and current mesh path; they do not by themselves require choosing a solid kernel. The next decision gate remains **B2 surface-patch prototype** (or earlier if a specific implementation/API constraint arises), followed by B4 adapter validation.
+
+**No comparative benchmark/research repeated.** Existing matrix, prototype K1–K10 questions and provisional recommendation remain unchanged: OCCT first prototype candidate; Parasolid/ACIS only as measured alternatives; CGAL complementary; persistent domain IDs and feature graph remain kernel-independent. No B-Rep/kernel implementation or robustness result is claimed.
