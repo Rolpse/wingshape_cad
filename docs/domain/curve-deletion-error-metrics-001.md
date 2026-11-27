@@ -84,7 +84,7 @@ Reject with a typed/structured failure and no mutation for: missing anchor ID; e
 | ID | Test | Acceptance |
 |---|---|---|
 | CD-001 | Known directional-distance fixture: source→fit [0,2] mm; fit→source [1,3] mm | RMS source→fit \(=\sqrt2\) mm; RMS fit→source \(=\sqrt5\) mm; symmetric RMS \(=\sqrt{3.5}\) mm; symmetric maximum \(=3\) mm |
-| CD-002 | Combined denominator | For equal sample counts, symmetric RMS equals square-root of all (2N) squared distances divided by (2N); never (N) |
+| CD-002 | Combined denominator | For equal sample counts, symmetric RMS equals square-root of all \(2N\) squared distances divided by \(2N\); never \(N\) |
 | CD-003 | Exact split then removal | Stable endpoint IDs and exact parent control points restored within floating-point tolerance; report accepted for fixture tolerance |
 | CD-004 | Threshold boundary | Accept when sampled max is exactly tolerance; reject when it exceeds tolerance by a known positive amount |
 | CD-005 | Report completeness | Directional and combined RMS/max, counts, sampling method, tolerance, accepted, exact-inverse flag and units are present |
