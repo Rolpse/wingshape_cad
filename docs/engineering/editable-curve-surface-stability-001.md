@@ -87,3 +87,12 @@
 ## Completion evidence
 
 This document is a plan/specification. It does **not** claim that the tests above were executed, that PR #2 was merged, that a surface kernel exists, or that CAM is unblocked. Record commits, test logs, measured errors and review decisions in the relevant issues/PRs when work is performed.
+
+
+## Code-review finding — PR #2 bounded-deletion RMS metric
+
+**Finding (confirmed by source inspection; not runtime-tested):** in `delete_anchor_bounded()`, the general-fit path's `errors()` score sums squared distances from both source samples to fitted polyline and fitted samples to source polyline (2N distances), but the report computes `rms = sqrt(best[0] / len(source))` (N denominator). This makes the reported RMS larger by a factor of sqrt(2) than the RMS over the combined symmetric sample set. It is conservative numerically but inconsistent with the stated metric and with the exact-subdivision path, which calculates RMS over source samples only.
+
+**Required correction:** define the metric explicitly and use one convention consistently. Recommended: report separate source-to-fit RMS and fit-to-source RMS, plus their combined RMS (denominator 2N) and maximum symmetric sampled deviation; include sampling method/density. Do not silently use one directional RMS in the exact path and symmetric RMS in the general path. Add a test with a known distance distribution to catch denominator errors. This is a review observation, not a patch or test result.
+
+**Additional review priority:** the sampled deviation is still not a certified Hausdorff bound; independently dense/adaptive sampling must be used for validation, and scale/degenerate tangent tests remain outstanding.
