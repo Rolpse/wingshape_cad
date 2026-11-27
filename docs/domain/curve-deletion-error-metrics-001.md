@@ -15,40 +15,40 @@
 
 ## 2. Sampled metric contract
 
-For validation sample sets (S_h={s_i}_{i=1}^{N_S}) and (F_h={f_j}_{j=1}^{N_F}), use point-to-polyline projection distances:
+For validation sample sets \\(S_h=\\{s_i\\}_{i=1}^{N_S}\\) and \\(F_h=\\{f_j\\}_{j=1}^{N_F}\\), use point-to-polyline projection distances:
 
-[
+\\[
 d_{S\to F}(s_i)=\min_{q\in \operatorname{polyline}(F_h)}\|s_i-q\|_2
-]
+\\]
 
-[
+\\[
 d_{F\to S}(f_j)=\min_{q\in \operatorname{polyline}(S_h)}\|f_j-q\|_2
-]
+\\]
 
 Report separate directional RMS values:
 
-[
+\\[
 RMS_{S\to F}=\sqrt{\frac{\sum_i d_{S\to F}(s_i)^2}{N_S}},\quad
 RMS_{F\to S}=\sqrt{\frac{\sum_j d_{F\to S}(f_j)^2}{N_F}}
-]
+\\]
 
 The combined symmetric RMS **must use the full sample count**:
 
-[
+\\[
 RMS_{sym}=\sqrt{\frac{\sum_i d_{S\to F}(s_i)^2+\sum_j d_{F\to S}(f_j)^2}{N_S+N_F}}
-]
+\\]
 
-When both sample sets have (N) points, the denominator is (2N), not (N). The symmetric maximum sampled deviation is:
+When both sample sets have \\(N\\) points, the denominator is \\(2N\\), not (N). The symmetric maximum sampled deviation is:
 
-[
+\\[
 D_{max,sym}=\max(\max_i d_{S\to F}(s_i),\max_j d_{F\to S}(f_j))
-]
+\\]
 
 The fitter's symmetric least-squares score is the sum of the same two squared-distance sets; optimization must not silently switch to a one-direction score.
 
 ## 3. Tolerance and acceptance semantics
 
-- The user tolerance `max_deviation_mm` is compared to (D_{max,sym}), not to RMS: accept iff (D_{max,sym}\le max\_deviation\_mm).
+- The user tolerance `max_deviation_mm` is compared to \\(D_{max,sym}\\), not to RMS: accept iff (D_{max,sym}\le max\_deviation\_mm).
 - A failed fit raises a tolerance exception carrying its complete report; the curve is not mutated.
 - A report marked `accepted=false` must not be applied to the model.
 - The RMS is descriptive and is not an alternate acceptance path.
@@ -83,7 +83,7 @@ Reject with a typed/structured failure and no mutation for: missing anchor ID; e
 
 | ID | Test | Acceptance |
 |---|---|---|
-| CD-001 | Known directional-distance fixture: source→fit [0,2] mm; fit→source [1,3] mm | RMS source→fit (=\sqrt2) mm; RMS fit→source (=\sqrt5) mm; symmetric RMS (=\sqrt{3.5}) mm; symmetric maximum (=3) mm |
+| CD-001 | Known directional-distance fixture: source→fit [0,2] mm; fit→source [1,3] mm | RMS source→fit (=\sqrt2) mm; RMS fit→source (=\sqrt5) mm; symmetric RMS (=\sqrt{3.5}) mm; symmetric maximum (\\(=3\\)) mm |
 | CD-002 | Combined denominator | For equal sample counts, symmetric RMS equals square-root of all (2N) squared distances divided by (2N); never (N) |
 | CD-003 | Exact split then removal | Stable endpoint IDs and exact parent control points restored within floating-point tolerance; report accepted for fixture tolerance |
 | CD-004 | Threshold boundary | Accept when sampled max is exactly tolerance; reject when it exceeds tolerance by a known positive amount |
