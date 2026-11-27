@@ -401,8 +401,8 @@ class BezierCurve:
     def delete_anchor(self, anchor_id: str) -> "BezierCurve":
         """Delete an anchor and join its neighbors with a straight cubic.
 
-        This first-pass operation is intentionally explicit: the replacement
-        may change shape. A bounded curve-fit deletion operation is a later task.
+        This compatibility operation is intentionally explicit: the replacement
+        may change shape. Prefer delete_anchor_bounded() when deviation matters.
         Endpoints are protected; callers must choose another operation to trim.
         """
         index = next((i for i, a in enumerate(self.anchors) if a.id == anchor_id), None)
