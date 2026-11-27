@@ -214,3 +214,20 @@ For `product_kind=surfboard`, foil mounts/assembly may be absent. For `wingfoil_
 - Fixtures: surfboard, wingfoil board and multi-component foil under `examples/domain/`.
 - Implementation limitations and test matrix: [shape-document-schema-implementation-001.md](shape-document-schema-implementation-001.md).
 - CI observed successful on commit `9dcd91bc3eb34dc326c4974a7557ea8b8ebef41c`: 75 tests passed. The schema/validator milestone is accepted as a partial domain milestone; geometric/kernel acceptance remains incomplete.
+
+
+## 14. Curve-operation error metrics addendum (2026-11-28)
+
+Bounded anchor deletion is a domain operation, not a UI-only edit. Its reported fit error and acceptance threshold must have stable, unit-aware semantics. The symmetric sampled RMS uses both source-to-fit and fit-to-source samples with denominator \(N_S+N_F\); the tolerance gate is the maximum symmetric sampled deviation, not RMS. The current Bezier prototype uses fixed uniform-parameter sampling and does **not** certify continuous Hausdorff distance.
+
+
+See [Curve Deletion Error Metrics 001](curve-deletion-error-metrics-001.md) for formulas, report fields, failure behavior and acceptance tests CD-001–CD-008. This is a specification refinement only: directional report fields, adaptive sampling and a certified geometric bound are not yet implemented.
+
+Domain acceptance addition: **DM-015** — anchor deletion report and acceptance must use explicit symmetric point-to-polyline metrics, full sample-count denominator, canonical mm units, and a sampled maximum tolerance gate; rejection leaves the serialized curve unchanged, and continuity downgrades are explicit.
+
+### Verified repository checkpoint
+
+- Main: `ffb78904b45ef72ce26bee46f4498a8dbedc80d8`; CI run #76 passed 75 tests.
+- PR #2 head: `d088ccc86c60f23f6dbf96e928086508d412ff4c`; CI run #79 passed 48 tests. The corrected combined RMS denominator is present on that branch, but PR #2 is still open and reports non-mergeable/diverged from main (compare: 25 commits ahead, 53 behind).
+- PR #6 remains draft; its branch CI run #33 passed 45 tests. It is an architecture proposal, not implementation.
+- Issue #3's Python/C++ source-of-truth decision and PR #2 branch reconciliation remain blockers before curve integration/surface patch work. No kernel selection or B-Rep milestone is advanced by this metric clarification.
