@@ -91,6 +91,7 @@ class BezierControlPointTests(unittest.TestCase):
         restored, report = split.delete_anchor_bounded("middle", 0.5)
         self.assertTrue(report.accepted)
         self.assertLessEqual(report.max_sampled_deviation, 0.5)
+        self.assertLess(report.rms_deviation, 0.1)
         self.assertEqual([a.id for a in restored.anchors], ["A", "B"])
     def test_bounded_delete_rejects_shape_change_over_tolerance(self):
         curve = BezierCurve((
