@@ -291,7 +291,7 @@ svg.addEventListener('pointermove',evt=>{
   if(isCenter){if(a.mode!=='corner')a[h+'y']=a.y;syncSymmetryAt(drag.i,h)}
   else{if(a.mode!=='corner'){const vx=a[h+'x']-a.x,vy=a[h+'y']-a.y,d=Math.hypot(vx,vy)||1,otherLength=a.mode==='symmetric'?d:Math.hypot(a[other+'x']-a.x,a[other+'y']-a.y);a[other+'x']=a.x-vx/d*otherLength;a[other+'y']=a.y-vy/d*otherLength}downgradeIfBroken(a);syncSymmetryAt(drag.i,h)}
  }
- drag.last=now;draw(); drag.last=now;draw();
+ drag.last=now;draw();
 });
 svg.addEventListener('pointerup',()=>{drag=null});
 svg.addEventListener('pointercancel',()=>{drag=null});
@@ -313,7 +313,6 @@ document.getElementById('applyCoords').onclick=()=>{
  syncSymmetryAt(selected,isCenter&&inChanged&&!outChanged?'in':'out');
  feedbackEl.textContent='Koordinaten übernommen. Die Gegenseite wurde automatisch gespiegelt.'+(isCenter?' Der Anker bleibt auf der Mittellinie x = 0 mm.':'')+(oldMode!==a.mode?' Der Kontinuitätsmodus wurde auf Corner gesetzt, weil die Griffe nicht mehr zur bisherigen Bedingung passen.':'');draw();
 };
-svg.addEventListener('keydown'};
 svg.addEventListener('keydown',evt=>{if(evt.key==='+'||evt.key==='='){zoomBy(1.25);evt.preventDefault()}else if(evt.key==='-'){zoomBy(.8);evt.preventDefault()}else if(evt.key==='0'){viewport={x:0,y:0,zoom:1};draw();evt.preventDefault()}});
 function splitSegmentAtHalf(a,b){
  const p=segmentPoints(a,b),q0=lerp(p[0],p[1],.5),q1=lerp(p[1],p[2],.5),q2=lerp(p[2],p[3],.5);
