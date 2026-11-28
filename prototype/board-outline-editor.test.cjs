@@ -234,10 +234,10 @@ test('tail outgoing X handle is freely movable and its opposite handle stays mir
     target:{closest:()=>({dataset:{type:'out',i:'3'}})},
     clientX:screen.x, clientY:screen.y, pointerId:7
   });
-  app.listeners.pointermove({clientX:screen.x+32,clientY:screen.y});
+  app.listeners.pointermove({clientX:screen.x+2,clientY:screen.y});
   assert.equal(app.svg.attributes.viewBox,initialViewBox,'camera must stay fixed during tail-handle drag');
   app.listeners.pointerup();
-  assert.ok(Math.abs(tail.ox-(initialOutX+32/scale))<1e-8, 'tail outgoing handle X must follow the pointer: actual='+tail.ox+' initial='+initialOutX+' expectedDelta='+(32/scale)+' viewBox='+app.svg.attributes.viewBox);
+  assert.ok(Math.abs(tail.ox-(initialOutX+2/scale))<1e-8, 'tail outgoing handle X must follow the pointer: actual='+tail.ox+' initial='+initialOutX+' expectedDelta='+(2/scale)+' viewBox='+app.svg.attributes.viewBox);
   assert.ok(Math.abs(tail.ix+tail.ox)<1e-8, 'incoming handle must mirror outgoing X');
   assert.ok(Math.abs(tail.oy-tail.y)<1e-8 && Math.abs(tail.iy-tail.y)<1e-8);
   assertSymmetric(app.model().anchors);
