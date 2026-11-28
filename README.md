@@ -23,7 +23,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
-The transverse profile kernel and analytic section-loft mesh are additive paths. The new browser outline editor is still a separate prototype and is not yet connected to the geometry kernel, section model or 3D loft. These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
+The transverse profile kernel and analytic section-loft mesh are additive paths. A tested Python adapter now converts the browser outline export into Shape Document v0.1.0 and recalculates station widths from the imported planform. The browser editor is not yet directly connected to the geometry kernel or 3D loft; template-derived section profiles and rocker/stringer Z values still require review.
 
 ## Imported source and tests
 
@@ -31,8 +31,8 @@ The transverse profile kernel and analytic section-loft mesh are additive paths.
 - Transverse section model: src/board/sections.py
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
-- Hydrodynamics calculations: src/hydrodynamics/performance.py
-- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (75 Python tests); prototype/board-outline-editor.test.cjs (11 Node.js regression tests)
+- Hydrodynamics calculations: src/hydrodynamics/performance.py\n- Outline-to-Shape-Document adapter: src/domain/outline_editor_adapter.py
+- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (81 Python tests); prototype/board-outline-editor.test.cjs (11 Node.js regression tests)
 - Engineering contracts/reviews: docs/engineering and docs/board
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
@@ -51,6 +51,16 @@ The transverse profile kernel and analytic section-loft mesh are additive paths.
 
 - [Standalone board outline editor](prototype/board-outline-editor.html) — closed Bézier outline in millimetres, Corner/Smooth/Symmetric handles, exact curve insertion, tolerance-bounded deletion, coordinate editing, zoom/pan, true outer-dimension labels, sampled self-intersection checks and JSON import/export.
 - [Editor implementation notes](docs/engineering/interactive-outline-editor-prototype-001.md)
+
+Convert an exported outline JSON into the canonical Shape Document v0.1.0 format:
+
+```bash
+python -m src.domain.outline_editor_adapter surfwing-outline-mm.json \
+  --template examples/domain/wingfoil-board-0.1.json \
+  --output build/board-shape.json
+```
+
+The adapter uses the selected Shape Document as a template. It maps editor coordinates to the canonical longitudinal/transverse axes, updates station widths and section-frame positions, scales rocker/stringer longitudinal coordinates, and clears cached derived properties. It preserves the template's transverse section profiles and rocker/stringer Z values; those are not newly designed by the outline editor.
 
 ## Run
 
