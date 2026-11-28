@@ -31,13 +31,31 @@ node --test prototype/board-outline-editor.test.cjs
 
 The Python test workflow also runs these tests using Node.js 24. The eleven regression tests cover script parsing, the closed Bézier fill path, exact insertion preservation, tolerance-accepted and tolerance-rejected deletion, undo/redo, mm scaling, continuity-mode transitions, numeric coordinate entry, viewport navigation, calibrated outside dimensions, self-intersection rejection and degenerate-anchor rejection. These tests use a lightweight DOM stub; they do not replace manual browser testing.
 
+## Shape Document v0.1.0 adapter
+
+The editor exports a standalone `surfwing.outline` JSON. Convert it to a complete, schema-validated board document from the repository root:
+
+```bash
+python -m src.domain.outline_editor_adapter surfwing-outline-mm.json \
+  --template examples/domain/wingfoil-board-0.1.json \
+  --output build/board-shape.json
+```
+
+The Python adapter:
+- maps editor `(transverse, longitudinal)` coordinates to the canonical document `(longitudinal, transverse)` axes;
+- transfers stable anchor IDs, both Bézier handles and Corner/Smooth/Symmetric continuity;
+- samples the imported planform to recompute the template's section-station widths, moves the section frames, and scales rocker/stringer longitudinal coordinates;
+- preserves the template's cross-section profiles and rocker/stringer Z values, clears cached derived properties, adds a warning, and validates the result with the existing Shape Document validator.
+
+This is a planform-to-document bridge, not a complete board rebuild. The section profiles and rocker/stringer vertical shape remain template values and must be reviewed or edited before relying on 3D geometry or manufacturing output.
+
 ## Current limitations
 
 - The least-squares deletion fit approximates the two-piece curve with a single cubic. It is not a constrained NURBS refit; the reported conservative bound is for the parameter-matched curve pair used by this editor.
 - Deletion and insertion are geometric operations, but the prototype still needs broader edge-case tests for very short spans, nearly coincident anchors and extreme handle magnitudes.
 - The self-intersection check uses a 64-step polyline approximation per cubic segment. It is an early screen, not an exact proof of curve simplicity; very narrow crossings and near-tangencies need stronger adaptive intersection testing.
 - Cross-section view is a placeholder and is not generated from the board geometry.
-- The editor is not yet connected to the Shape Document schema, board station model, analytic section kernel or 3D loft.
+- The browser editor does not yet write Shape Document JSON directly; the separate Python adapter performs that conversion. The editor and adapter are not yet connected to the analytic geometry kernel or 3D loft.
 - No CAD kernel, editable deck/bottom/rail surfaces, STEP/STL export or CAM connection is present.
 - No machine-approved CNC output is generated.
 
