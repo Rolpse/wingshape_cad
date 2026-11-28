@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SurfWing CAD – Board Outline Editor</title>
+<style>
+:root{color-scheme:dark;font:15px system-ui,Segoe UI,sans-serif;background:#101820;color:#e8eef4}
+*{box-sizing:border-box}body{margin:0}header{padding:14px 20px;background:#182632;border-bottom:1px solid #334654}h1{font-size:20px;margin:0 0 4px}small,.muted{color:#a8bac9}
+main{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100vh - 70px)}
+aside{padding:16px;background:#15212b;border-right:1px solid #334654;display:flex;flex-direction:column;gap:12px}
+label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+input[type=number]{width:105px;background:#0d151c;border:1px solid #405565;color:white;padding:7px;border-radius:5px}
+button{background:#263b4b;border:1px solid #526a7a;color:#e8eef4;padding:8px 10px;border-radius:6px;cursor:pointer}
+button:hover{background:#35556b}button:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:6px;flex-wrap:wrap}.notice{font-size:12px;color:#a8bac9;line-height:1.45;margin:2px 0}
+#status{font-size:12px;color:#d7e4ed;padding:8px;background:#0d151c;border:1px solid #334654;border-radius:5px}
+#integrity{font-size:12px;line-height:1.45;padding:8px;border:1px solid #526a7a;border-radius:5px}
+#integrity.valid{color:#9ed7b0;border-color:#37634c;background:#102018}
+#integrity.invalid{color:#ffb0a7;border-color:#7c3939;background:#241313}
+.dimension-line{stroke:#b8cbd8;stroke-width:3;fill:none;marker-start:url(#dimArrow);marker-end:url(#dimArrow)}
+.dimension-extension{stroke:#708b9d;stroke-width:2;stroke-dasharray:6 5}
+.dimension-label{fill:#d7e4ed;font-size:34px;text-anchor:middle;paint-order:stroke;stroke:#0d151c;stroke-width:7px;stroke-linejoin:round}
+#feedback{font-size:12px;line-height:1.45;color:#e8c98d;min-height:34px}
+.coord-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.coord-grid label{display:flex;flex-direction:column;align-items:stretch;gap:3px}
+.coord-grid input{width:100%}
+.workspace{padding:14px;display:grid;grid-template-rows:minmax(430px,1fr) 150px;gap:12px;min-height:78vh}
+.panel{background:#0d151c;border:1px solid #334654;border-radius:8px;overflow:hidden;position:relative}
+.panel-title{position:absolute;top:10px;left:12px;z-index:2;color:#b8cbd8;font-size:12px;pointer-events:none}
+svg{width:100%;height:100%;touch-action:none;display:block}
+.board-fill{fill:#4a839f;fill-opacity:.22;stroke:#82c5e5;stroke-width:2.5;stroke-linejoin:round}
+.centerline{stroke:#587183;stroke-width:1.5;stroke-dasharray:12 12;pointer-events:none}
+.handle-line{stroke:#d9ad64;stroke-width:1.1;stroke-dasharray:8 7;opacity:.8}
+.handle-hit,.anchor-hit{fill:transparent;stroke:none;pointer-events:all;cursor:grab}
+.handle{fill:#e2b45f;stroke:#0d151c;stroke-width:1.1;pointer-events:none}
+.anchor{fill:#f4f7fa;stroke:#163347;stroke-width:1.5;pointer-events:none}
+.anchor.selected{fill:#ff9b54;stroke:white}
+#sectionSvg .deck{stroke:#a8d7f0;fill:none;stroke-width:3}#sectionSvg .bottom{stroke:#5db9a0;fill:none;stroke-width:3}
+@media(max-width:850px){main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #334654}.workspace{grid-template-rows:65vh 150px;min-height:auto}}
+</style>
+</head>
+<body>
+<header><h1>SurfWing CAD – Board Outline Editor</h1><small>Geometrie in Millimetern · geschlossene Bézier-Kontur · spiegelgleiche Draufsicht</small></header>
+<main>
+<aside>
+<label>Boardlänge (mm) <input id="length" type="number" value="1600" min="500" max="4000" step="10"></label>
+<label>Max. Breite (mm) <input id="width" type="number" value="520" min="100" max="1200" step="5"></label>
+<label>Lösch-Toleranz (mm) <input id="tolerance" type="number" value="1.0" min="0.1" max="20" step="0.1"></label>
+<p class="notice"><b>Exakte Punktkoordinaten (mm)</b></p>
+<div class="coord-grid">
+<label>Anker X <input id="anchorX" type="number" step="0.1"></label><label>Anker Y <input id="anchorY" type="number" step="0.1"></label>
+<label>Einlauf X <input id="inX" type="number" step="0.1"></label><label>Einlauf Y <input id="inY" type="number" step="0.1"></label>
+<label>Auslauf X <input id="outX" type="number" step="0.1"></label><label>Auslauf Y <input id="outY" type="number" step="0.1"></label>
+</div><button id="applyCoords">Koordinaten übernehmen</button>
+<div class="row"><button id="zoomIn">Zoom +</button><button id="zoomOut">Zoom −</button><button id="fitView">Ansicht einpassen</button></div>
+<div class="row"><button id="add">Punkt einfügen</button><button id="del">Punkt löschen</button></div>
+<div class="row"><button id="mode">Modus: Corner</button><button id="undo">Undo</button><button id="redo">Redo</button></div>
+<div class="row"><button id="reset">Reset</button><button id="export">JSON export</button><button id="import">JSON import</button><input id="file" type="file" accept=".json,application/json" hidden></div>
+<div id="status"></div><div id="integrity" class="valid">Geometrieprüfung läuft …</div><div id="feedback">Punkte und Griffe direkt in der Zeichnung ziehen.</div>
+<p class="notice"><b>Spiegelsymmetrie aktiv:</b> Nur die Draufsicht wird an der Mittellinie gespiegelt. Du kannst links oder rechts Punkte und Griffe bearbeiten; die Gegenseite wird automatisch gespiegelt. Nose und Tail bleiben auf der Mittellinie.</p>
+<p class="notice"><b>Kontur:</b> Gefüllte Fläche und Außenlinie verwenden dieselbe geschlossene Bézier-Kontur. Maßlinien zeigen die berechneten Außenabmessungen aus den Kurvenextrema.</p>
+<p class="notice"><b>Geometrieprüfung:</b> Kontrolliert ungültige Koordinaten, zusammenfallende Anker und Selbstüberschneidungen. Bei ungültiger Kontur wird der JSON-Export gesperrt.</p>
+<p class="notice"><b>Einfügen:</b> Teilt das längste Kurvensegment exakt bei t = 0,5 (De-Casteljau). Die ursprüngliche Kurvenform bleibt erhalten.</p>
+<p class="notice"><b>Löschen:</b> Die zwei Nachbarsegmente werden zu einer Bézier-Kurve angepasst. Der Punkt wird nur entfernt, wenn die maximale Abweichung die eingestellte Toleranz nicht überschreitet.</p>
+<p class="notice"><b>Griffe:</b> Corner = frei, Smooth = tangential mit unabhängigen Längen, Symmetric = tangential und gleich lang. Längen-/Breitenänderungen skalieren alle Koordinaten und Griffe proportional.</p>
+<p class="notice">Der Querschnitt ist weiterhin nur ein Platzhalter. Noch keine Deck-/Bottom-Flächen, 3D-Loft, CAD-Kernel, STEP/STL oder CNC-Ausgabe.</p>
+</aside>
+<section class="workspace">
+<div class="panel"><div class="panel-title">Draufsicht · Maße und Griffe in mm</div><svg id="svg" viewBox="-350 -850 700 1700" preserveAspectRatio="xMidYMid meet" tabindex="0" aria-label="Board outline editor"></svg></div>
+<div class="panel"><div class="panel-title">Querschnitt-Skizze · Platzhalter</div><svg id="sectionSvg" viewBox="0 0 900 220"><path class="deck" d="M170 100 Q450 70 730 100"/><path class="bottom" d="M170 125 Q450 150 730 125"/><line x1="170" y1="100" x2="170" y2="125" stroke="#71899b"/><line x1="730" y1="100" x2="730" y2="125" stroke="#71899b"/><text x="450" y="185" text-anchor="middle" fill="#9bb0c0">Geometrie-gekoppelter Section-Editor folgt</text></svg></div>
+</section>
+</main>
+<script>
+const svg=document.getElementById('svg');
+const lengthInput=document.getElementById('length');
+const widthInput=document.getElementById('width');
+const toleranceInput=document.getElementById('tolerance');
+const statusEl=document.getElementById('status');
+const integrityEl=document.getElementById('integrity');
+const feedbackEl=document.getElementById('feedback');
+const coordinateInputs={anchorX:document.getElementById('anchorX'),anchorY:document.getElementById('anchorY'),inX:document.getElementById('inX'),inY:document.getElementById('inY'),outX:document.getElementById('outX'),outY:document.getElementById('outY')};
+let viewport={x:0,y:0,zoom:1,baseWidth:null,baseHeight:null};
+let idCounter=7;
+function fromOld(px,py,w,l){return {x:(px-450)*(w/420)*0.89340860393287,y:(py-297.5)*(l/465)}}
+function anchor(id,pos,inP,outP,mode){return {id:id,x:pos.x,y:pos.y,ix:inP.x,iy:inP.y,ox:outP.x,oy:outP.y,mode:mode}}
+function mirrorIndex(i,count){return (count-i)%count}
+function syncMirrorData(source,target){
+ target.x=-source.x;target.y=source.y;target.ix=-source.ox;target.iy=source.oy;target.ox=-source.ix;target.oy=source.iy;target.mode=source.mode;
+}
+function syncCenterlineData(a,editedHandle){
+ // The nose and tail lie on the centreline. Smooth/Symmetric handles stay
+ // tangent to X, while their X coordinates remain fully editable.
+ a.x=0;
+ if(a.mode!=='corner'){a.iy=a.y;a.oy=a.y}
+ if(editedHandle==='in'){a.ox=-a.ix;if(a.mode==='corner')a.oy=a.iy}
+ else{a.ix=-a.ox;if(a.mode==='corner')a.iy=a.oy}
+}
+function syncSymmetryAt(index,editedHandle){
+ const count=model.anchors.length,partner=mirrorIndex(index,count);
+ if(index===partner){syncCenterlineData(model.anchors[index],editedHandle||'out');return}
+ syncMirrorData(model.anchors[index],model.anchors[partner]);
+}
+function enforceModelSymmetry(target){
+ const a=target.anchors,n=a.length;if(n<4||n%2!==0)return;const mid=n/2;
+ syncCenterlineData(a[0],'out');for(let i=1;i<mid;i++)syncMirrorData(a[i],a[n-i]);syncCenterlineData(a[mid],'out');
+}
+function makeInitialModel(){
+ const w=520,l=1600,pt=(x,y)=>fromOld(x,y,w,l);
+ const raw=[
+  ['nose',[450,65],[450,65],[450,65],'corner'],
+  ['starboard-shoulder',[660,210],[615,145],[705,280],'smooth'],
+  ['starboard-rail',[610,430],[690,385],[540,475],'smooth'],
+  ['tail',[450,530],[500,500],[400,500],'smooth'],
+  ['port-rail',[290,430],[360,475],[210,385],'smooth'],
+  ['port-shoulder',[240,210],[195,280],[285,145],'smooth']
+ ];
+ const initial={name:'Wingfoil Board Outline',length_mm:l,width_mm:w,units:'mm',closed:true,anchors:raw.map(r=>anchor(r[0],pt(r[1][0],r[1][1]),pt(r[2][0],r[2][1]),pt(r[3][0],r[3][1]),r[4]))};
+ enforceModelSymmetry(initial);return initial;
+}
+let model=makeInitialModel(),selected=0,drag=null,undoStack=[],redoStack=[];
+function state(){return JSON.stringify({model:model,selected:selected})}
+function pushUndo(){undoStack.push(state());if(undoStack.length>100)undoStack.shift();redoStack=[]}
+function restoreState(s){const v=JSON.parse(s);model=v.model;selected=Math.min(v.selected,model.anchors.length-1);lengthInput.value=model.length_mm;widthInput.value=model.width_mm;draw()}
+function point(x,y){return {x:x,y:y}}
+function lerp(a,b,t){return point(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t)}
+function bezier(p0,p1,p2,p3,t){
+ const u=1-t,uu=u*u,tt=t*t;
+ return point(uu*u*p0.x+3*uu*t*p1.x+3*u*tt*p2.x+tt*t*p3.x,uu*u*p0.y+3*uu*t*p1.y+3*u*tt*p2.y+tt*t*p3.y);
+}
+function segmentPoints(a,b){return [point(a.x,a.y),point(a.ox,a.oy),point(b.ix,b.iy),point(b.x,b.y)]}
+function segmentLength(a,b){const p=segmentPoints(a,b);let total=0,last=p[0];for(let j=1;j<=30;j++){const v=bezier(p[0],p[1],p[2],p[3],j/30);total+=Math.hypot(v.x-last.x,v.y-last.y);last=v}return total}
+function pathData(){
+ const a=model.anchors;let d='M '+a[0].x+' '+a[0].y;
+ for(let i=0;i<a.length;i++){const b=a[(i+1)%a.length];d+=' C '+a[i].ox+' '+a[i].oy+', '+b.ix+' '+b.iy+', '+b.x+' '+b.y}
+ return d+' Z';
+}
+function derivativeRoots(p0,p1,p2,p3){
+ const a=-p0+3*p1-3*p2+p3,b=2*(p0-2*p1+p2),c=p1-p0,roots=[];
+ if(Math.abs(a)<1e-12){if(Math.abs(b)>1e-12)roots.push(-c/b);return roots}
+ const disc=b*b-4*a*c;if(disc<0)return roots;
+ const root=Math.sqrt(Math.max(0,disc));roots.push((-b-root)/(2*a));if(root>1e-12)roots.push((-b+root)/(2*a));return roots;
+}
+function outlineBounds(){
+ const bounds={minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};
+ const include=p=>{bounds.minX=Math.min(bounds.minX,p.x);bounds.maxX=Math.max(bounds.maxX,p.x);bounds.minY=Math.min(bounds.minY,p.y);bounds.maxY=Math.max(bounds.maxY,p.y)};
+ for(let i=0;i<model.anchors.length;i++){
+  const p=segmentPoints(model.anchors[i],model.anchors[(i+1)%model.anchors.length]);
+  [p[0],p[3]].forEach(include);
+  for(const axis of ['x','y']){
+   const ts=derivativeRoots(p[0][axis],p[1][axis],p[2][axis],p[3][axis]);
+   for(const t of ts)if(t>0&&t<1)include(bezier(p[0],p[1],p[2],p[3],t));
+  }
+ }
+ return bounds;
+}
+function orientation(a,b,c){return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)}
+function onSegment(a,b,p,eps){
+ return p.x>=Math.min(a.x,b.x)-eps&&p.x<=Math.max(a.x,b.x)+eps&&p.y>=Math.min(a.y,b.y)-eps&&p.y<=Math.max(a.y,b.y)+eps;
+}
+function segmentsIntersect(a,b,c,d){
+ const scale=Math.max(1,Math.hypot(b.x-a.x,b.y-a.y),Math.hypot(d.x-c.x,d.y-c.y)),eps=1e-8*scale;
+ const o1=orientation(a,b,c),o2=orientation(a,b,d),o3=orientation(c,d,a),o4=orientation(c,d,b);
+ if(((o1>eps&&o2< -eps)||(o1< -eps&&o2>eps))&&((o3>eps&&o4< -eps)||(o3< -eps&&o4>eps)))return true;
+ if(Math.abs(o1)<=eps&&onSegment(a,b,c,eps))return true;
+ if(Math.abs(o2)<=eps&&onSegment(a,b,d,eps))return true;
+ if(Math.abs(o3)<=eps&&onSegment(c,d,a,eps))return true;
+ if(Math.abs(o4)<=eps&&onSegment(c,d,b,eps))return true;
+ return false;
+}
+function validateOutline(){
+ const a=model.anchors;
+ if(!Array.isArray(a)||a.length<4||a.length%2!==0)return {valid:false,reason:'Eine symmetrische Kontur benötigt eine gerade Anzahl von mindestens vier Kontrollpunkten.'};
+ const mid=a.length/2,eps=1e-7,close=(x,y)=>Math.abs(x-y)<=eps;
+ if(!close(a[0].x,0)||!close(a[mid].x,0)||!close(a[0].ix,-a[0].ox)||!close(a[0].iy,a[0].oy)||!close(a[mid].ix,-a[mid].ox)||!close(a[mid].iy,a[mid].oy))return {valid:false,reason:'Nose und Tail müssen auf der Mittellinie liegen und spiegelgleiche Griffe besitzen.'};
+ for(let i=1;i<mid;i++){const p=a[i],q=a[a.length-i];if(!close(q.x,-p.x)||!close(q.y,p.y)||!close(q.ix,-p.ox)||!close(q.iy,p.oy)||!close(q.ox,-p.ix)||!close(q.oy,p.iy)||q.mode!==p.mode)return {valid:false,reason:'Die Draufsicht ist zwischen Kontrollpunkt '+i+' und seinem Spiegelpunkt nicht symmetrisch.'};}
+ for(let i=0;i<a.length;i++){
+  const p=a[i],values=[p.x,p.y,p.ix,p.iy,p.ox,p.oy];
+  if(!values.every(Number.isFinite))return {valid:false,reason:'Ungültige oder nicht endliche Koordinate bei '+p.id+'.'};
+  const q=a[(i+1)%a.length];
+  if(Math.hypot(q.x-p.x,q.y-p.y)<0.01)return {valid:false,reason:'Zwei benachbarte Anker liegen praktisch übereinander.'};
+ }
+ const points=[point(a[0].x,a[0].y)],steps=64;
+ for(let i=0;i<a.length;i++){
+  const p=segmentPoints(a[i],a[(i+1)%a.length]);
+  for(let k=1;k<=steps;k++)points.push(bezier(p[0],p[1],p[2],p[3],k/steps));
+ }
+ const edgeCount=points.length-1;
+ for(let i=0;i<edgeCount;i++){
+  for(let j=i+2;j<edgeCount;j++){
+   if(i===0&&j===edgeCount-1)continue;
+   if(segmentsIntersect(points[i],points[i+1],points[j],points[j+1])){
+    return {valid:false,reason:'Selbstüberschneidung zwischen Konturabschnitten '+i+' und '+j+'.'};
+   }
+  }
+ }
+ const bounds=outlineBounds();
+ if(![bounds.minX,bounds.maxX,bounds.minY,bounds.maxY].every(Number.isFinite))return {valid:false,reason:'Konturgrenzen konnten nicht berechnet werden.'};
+ if(bounds.maxX-bounds.minX<1||bounds.maxY-bounds.minY<1)return {valid:false,reason:'Kontur hat keine ausreichende Breite oder Länge.'};
+ return {valid:true,bounds:bounds,reason:''};
+}
+function dimensionMarkup(bounds,margin){
+ const xDim=bounds.minX-margin*.55,yDim=bounds.maxY+margin*.45;
+ const length=(bounds.maxY-bounds.minY).toFixed(1),width=(bounds.maxX-bounds.minX).toFixed(1);
+ const xMid=(bounds.minX+bounds.maxX)/2,yMid=(bounds.minY+bounds.maxY)/2;
+ return '<defs><marker id="dimArrow" viewBox="-4 -4 8 8" refX="0" refY="0" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M -3 -3 L 0 0 L -3 3" fill="none" stroke="#b8cbd8" stroke-width="1"/></marker></defs>'+
+ '<g class="dimensions">'+
+ '<line class="dimension-extension" x1="'+bounds.minX+'" y1="'+bounds.minY+'" x2="'+xDim+'" y2="'+bounds.minY+'"/><line class="dimension-extension" x1="'+bounds.minX+'" y1="'+bounds.maxY+'" x2="'+xDim+'" y2="'+bounds.maxY+'"/>'+
+ '<line class="dimension-line" x1="'+xDim+'" y1="'+bounds.minY+'" x2="'+xDim+'" y2="'+bounds.maxY+'"/>'+
+ '<text class="dimension-label" x="'+(xDim-margin*.15)+'" y="'+yMid+'" transform="rotate(-90 '+(xDim-margin*.15)+' '+yMid+')">'+length+' mm</text>'+
+ '<line class="dimension-extension" x1="'+bounds.minX+'" y1="'+bounds.maxY+'" x2="'+bounds.minX+'" y2="'+yDim+'"/><line class="dimension-extension" x1="'+bounds.maxX+'" y1="'+bounds.maxY+'" x2="'+bounds.maxX+'" y2="'+yDim+'"/>'+
+ '<line class="dimension-line" x1="'+bounds.minX+'" y1="'+yDim+'" x2="'+bounds.maxX+'" y2="'+yDim+'"/>'+
+ '<text class="dimension-label" x="'+xMid+'" y="'+(yDim+margin*.27)+'">'+width+' mm</text></g>';
+}
+function draw(){
+ const validation=validateOutline();
+ const bounds=validation.bounds||{minX:-model.width_mm/2,maxX:model.width_mm/2,minY:-model.length_mm/2,maxY:model.length_mm/2};
+ const actualWidth=bounds.maxX-bounds.minX,actualLength=bounds.maxY-bounds.minY;
+ const margin=Math.max(60,Math.max(actualWidth,actualLength)*0.06);
+ // The camera is independent of the live outline bounds. Recalculating the
+ // viewBox on every pointermove makes the SVG transform move beneath the
+ // pointer, which produces apparent model drift while editing.
+ if(!Number.isFinite(viewport.baseWidth)||!Number.isFinite(viewport.baseHeight)){
+  viewport.baseWidth=actualWidth+2*margin;viewport.baseHeight=actualLength+2*margin;
+ }
+ const viewWidth=viewport.baseWidth/viewport.zoom,viewHeight=viewport.baseHeight/viewport.zoom;
+ svg.setAttribute('viewBox',(viewport.x-viewWidth/2)+' '+(viewport.y-viewHeight/2)+' '+viewWidth+' '+viewHeight);
+ const handles=[],nodes=[];
+ model.anchors.forEach((a,i)=>{
+  handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ix+'" y2="'+a.iy+'"/>');
+  handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ox+'" y2="'+a.oy+'"/>');
+  handles.push('<circle class="handle-hit" data-type="in" data-i="'+i+'" cx="'+a.ix+'" cy="'+a.iy+'" r="18"/>');
+  handles.push('<circle class="handle" cx="'+a.ix+'" cy="'+a.iy+'" r="5"/>');
+  handles.push('<circle class="handle-hit" data-type="out" data-i="'+i+'" cx="'+a.ox+'" cy="'+a.oy+'" r="18"/>');
+  handles.push('<circle class="handle" cx="'+a.ox+'" cy="'+a.oy+'" r="5"/>');
+  nodes.push('<circle class="anchor-hit" data-type="anchor" data-i="'+i+'" cx="'+a.x+'" cy="'+a.y+'" r="25"/>');
+  nodes.push('<circle class="anchor '+(i===selected?'selected':'')+'" cx="'+a.x+'" cy="'+a.y+'" r="7"/>');
+ });
+ const centerline='<line class="centerline" x1="0" y1="'+bounds.minY+'" x2="0" y2="'+bounds.maxY+'"/><text x="8" y="'+(bounds.minY+margin*.25)+'" fill="#8ea8b8" font-size="18">MITTELLINIE · SPIEGELSYMMETRIE</text>';
+ const left=viewport.x-viewWidth/2,bottom=viewport.y+viewHeight/2,axisX=left+viewWidth*.09,axisY=bottom-viewHeight*.10,axisLen=Math.min(viewWidth*.06,viewHeight*.045),axisWidth=Math.max(2,axisLen*.055),axisFont=axisLen*.34;
+ const axes='<g class="axis-indicator" pointer-events="none" fill="none" stroke="#9db6c6" stroke-width="'+axisWidth+'" stroke-linecap="round" stroke-linejoin="round">'+
+ '<circle cx="'+axisX+'" cy="'+axisY+'" r="'+(axisWidth*1.6)+'" fill="#9db6c6" stroke="none"/>'+
+ '<path d="M '+axisX+' '+axisY+' L '+(axisX+axisLen)+' '+axisY+' M '+(axisX+axisLen*.78)+' '+(axisY-axisLen*.13)+' L '+(axisX+axisLen)+' '+axisY+' L '+(axisX+axisLen*.78)+' '+(axisY+axisLen*.13)+'"/>'+
+ '<path d="M '+axisX+' '+axisY+' L '+axisX+' '+(axisY+axisLen)+' M '+(axisX-axisLen*.13)+' '+(axisY+axisLen*.78)+' L '+axisX+' '+(axisY+axisLen)+' L '+(axisX+axisLen*.13)+' '+(axisY+axisLen*.78)+'"/>'+
+ '<g fill="#d5e2ea" stroke="none" font-size="'+axisFont+'" font-family="system-ui, sans-serif"><text x="'+(axisX+axisLen*.9)+'" y="'+(axisY-axisLen*.18)+'">+X</text><text x="'+(axisX+axisLen*.18)+'" y="'+(axisY+axisLen*1.32)+'">+Y</text><text x="'+axisX+'" y="'+(axisY-axisLen*.42)+'" font-size="'+(axisFont*.68)+'">mm</text></g></g>';
+ svg.innerHTML=centerline+dimensionMarkup(bounds,margin)+'<path class="board-fill" d="'+pathData()+'"/>'+handles.join('')+nodes.join('')+axes;
+ integrityEl.className=validation.valid?'valid':'invalid';
+ integrityEl.textContent=validation.valid?'Kontur gültig · keine Selbstüberschneidung · Außenmaß '+actualLength.toFixed(1)+' × '+actualWidth.toFixed(1)+' mm':'Kontur ungültig · '+validation.reason;
+ document.getElementById('export').disabled=!validation.valid;
+ const a=model.anchors[selected];
+ statusEl.textContent=model.anchors.length+' Kontrollpunkte · ausgewählt: '+a.id+' · '+a.mode+' · '+model.length_mm+' × '+model.width_mm+' mm · Spiegelung aktiv · Zoom '+Math.round(viewport.zoom*100)+'%';
+ coordinateInputs.anchorX.value=a.x.toFixed(2);coordinateInputs.anchorY.value=a.y.toFixed(2);
+ coordinateInputs.inX.value=a.ix.toFixed(2);coordinateInputs.inY.value=a.iy.toFixed(2);
+ coordinateInputs.outX.value=a.ox.toFixed(2);coordinateInputs.outY.value=a.oy.toFixed(2);
+ document.getElementById('mode').textContent='Modus: '+a.mode;
+ document.getElementById('del').disabled=model.anchors.length<=4||selected===0||selected===model.anchors.length/2;
+ document.getElementById('undo').disabled=!undoStack.length;
+ document.getElementById('redo').disabled=!redoStack.length;
+}
+function svgCoordinates(evt){
+ const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;
+ const q=p.matrixTransform(svg.getScreenCTM().inverse());return point(q.x,q.y);
+}
+function continuityValid(a){
+ const ix=a.ix-a.x,iy=a.iy-a.y,ox=a.ox-a.x,oy=a.oy-a.y;
+ const li=Math.hypot(ix,iy),lo=Math.hypot(ox,oy);
+ if(li<1e-8||lo<1e-8)return false;
+ if(Math.abs(ix*oy-iy*ox)>1e-6*li*lo)return false;
+ if(ix*ox+iy*oy>=0)return false;
+ if(a.mode==='symmetric'&&Math.abs(li-lo)>1e-6*Math.max(li,lo))return false;
+ return true;
+}
+function downgradeIfBroken(a){if(a.mode!=='corner'&&!continuityValid(a))a.mode='corner'}
+function setMode(a,newMode){
+ const index=model.anchors.indexOf(a),mid=model.anchors.length/2;
+ if(index===0||index===mid){if(newMode==='corner'){a.mode='corner';return}const lo=Math.max(1,Math.hypot(a.ox-a.x,a.oy-a.y),Math.hypot(a.ix-a.x,a.iy-a.y)),outSign=index===0?1:-1;a.ox=a.x+outSign*lo;a.oy=a.y;a.ix=a.x-outSign*lo;a.iy=a.y;a.mode=newMode;return}
+ if(newMode==='corner'){a.mode='corner';return}
+ let dx=a.ox-a.x,dy=a.oy-a.y,lo=Math.hypot(dx,dy);
+ const ix=a.ix-a.x,iy=a.iy-a.y,li=Math.hypot(ix,iy);
+ if(lo<1e-9){
+  if(li>1e-9){dx=-ix;dy=-iy;lo=li}
+  else{
+   const i=model.anchors.indexOf(a),prev=model.anchors[(i+model.anchors.length-1)%model.anchors.length],next=model.anchors[(i+1)%model.anchors.length];
+   dx=(prev.x+next.x)/2-a.x;dy=(prev.y+next.y)/2-a.y;
+   const directionLength=Math.hypot(dx,dy)||1;dx/=directionLength;dy/=directionLength;
+   lo=Math.min(80,model.length_mm*.05);
+  }
+ }
+ const ux=dx/lo,uy=dy/lo,outLength=lo;
+ const inLength=newMode==='symmetric'?outLength:(li>1e-9?li:outLength);
+ a.ox=a.x+ux*outLength;a.oy=a.y+uy*outLength;
+ a.ix=a.x-ux*inLength;a.iy=a.y-uy*inLength;
+ a.mode=newMode;
+}
+svg.addEventListener('pointerdown',evt=>{
+ const target=evt.target.closest('[data-type]');
+ if(!target){drag={type:'pan',last:svgCoordinates(evt)};svg.setPointerCapture(evt.pointerId);return}
+ selected=Number(target.dataset.i);pushUndo();
+ drag={i:selected,type:target.dataset.type,last:svgCoordinates(evt)};
+ svg.setPointerCapture(evt.pointerId);draw();
+});
+svg.addEventListener('pointermove',evt=>{
+ if(!drag)return;
+ const now=svgCoordinates(evt),dx=now.x-drag.last.x,dy=now.y-drag.last.y;
+ if(drag.type==='pan'){viewport.x-=dx;viewport.y-=dy;drag.last=now;draw();return}
+ const a=model.anchors[drag.i],mid=model.anchors.length/2,isCenter=drag.i===0||drag.i===mid;
+ if(drag.type==='anchor'){
+  if(isCenter){a.y+=dy;a.iy+=dy;a.oy+=dy;a.x=0}else{a.x+=dx;a.y+=dy;a.ix+=dx;a.iy+=dy;a.ox+=dx;a.oy+=dy}
+  syncSymmetryAt(drag.i,'out');
+ }else{
+  const h=drag.type==='in'?'i':'o',other=h==='i'?'o':'i';a[h+'x']+=dx;a[h+'y']+=dy;
+  if(isCenter){
+   // Track the pointer directly: the tail's outgoing X coordinate is free.
+   a[h+'x']=now.x;
+   if(a.mode!=='corner')a[h+'y']=a.y;else a[h+'y']=now.y;
+   syncSymmetryAt(drag.i,h);
+  }
+  else{if(a.mode!=='corner'){const vx=a[h+'x']-a.x,vy=a[h+'y']-a.y,d=Math.hypot(vx,vy)||1,otherLength=a.mode==='symmetric'?d:Math.hypot(a[other+'x']-a.x,a[other+'y']-a.y);a[other+'x']=a.x-vx/d*otherLength;a[other+'y']=a.y-vy/d*otherLength}downgradeIfBroken(a);syncSymmetryAt(drag.i,h)}
+ }
+ drag.last=now;draw();
+});
+svg.addEventListener('pointerup',()=>{drag=null});
+svg.addEventListener('pointercancel',()=>{drag=null});
+svg.addEventListener('wheel',evt=>{
+ if(evt.preventDefault)evt.preventDefault();
+ const fixed=svgCoordinates(evt),oldZoom=viewport.zoom,newZoom=Math.max(.25,Math.min(20,oldZoom*Math.exp(-evt.deltaY*.001))),ratio=oldZoom/newZoom;
+ viewport.x=fixed.x-(fixed.x-viewport.x)*ratio;viewport.y=fixed.y-(fixed.y-viewport.y)*ratio;viewport.zoom=newZoom;draw();
+},{passive:false});
+function zoomBy(factor){viewport.zoom=Math.max(.25,Math.min(20,viewport.zoom*factor));draw()}
+document.getElementById('zoomIn').onclick=()=>zoomBy(1.25);
+document.getElementById('zoomOut').onclick=()=>zoomBy(.8);
+function fitView(){
+ const validation=validateOutline(),bounds=validation.bounds||{minX:-model.width_mm/2,maxX:model.width_mm/2,minY:-model.length_mm/2,maxY:model.length_mm/2};
+ const width=bounds.maxX-bounds.minX,height=bounds.maxY-bounds.minY,margin=Math.max(60,Math.max(width,height)*0.06);
+ viewport={x:(bounds.minX+bounds.maxX)/2,y:(bounds.minY+bounds.maxY)/2,zoom:1,baseWidth:width+2*margin,baseHeight:height+2*margin};draw();
+}
+document.getElementById('fitView').onclick=fitView;
+document.getElementById('applyCoords').onclick=()=>{
+ const ids=['anchorX','anchorY','inX','inY','outX','outY'],values=ids.map(id=>Number(coordinateInputs[id].value));
+ if(!values.every(Number.isFinite)){feedbackEl.textContent='Alle sechs Koordinaten müssen gültige Zahlen in mm sein.';return}
+ pushUndo();const a=model.anchors[selected],oldMode=a.mode,mid=model.anchors.length/2,isCenter=selected===0||selected===mid;
+ const inChanged=values[2]!==a.ix||values[3]!==a.iy,outChanged=values[4]!==a.ox||values[5]!==a.oy;
+ a.x=isCenter?0:values[0];a.y=values[1];a.ix=values[2];a.iy=values[3];a.ox=values[4];a.oy=values[5];
+ if(!isCenter)downgradeIfBroken(a);
+ syncSymmetryAt(selected,isCenter&&inChanged&&!outChanged?'in':'out');
+ feedbackEl.textContent='Koordinaten übernommen. Die Gegenseite wurde automatisch gespiegelt.'+(isCenter?' Der Anker bleibt auf der Mittellinie x = 0 mm.':'')+(oldMode!==a.mode?' Der Kontinuitätsmodus wurde auf Corner gesetzt, weil die Griffe nicht mehr zur bisherigen Bedingung passen.':'');draw();
+};
+svg.addEventListener('keydown',evt=>{if(evt.key==='+'||evt.key==='='){zoomBy(1.25);evt.preventDefault()}else if(evt.key==='-'){zoomBy(.8);evt.preventDefault()}else if(evt.key==='0'){fitView();evt.preventDefault()}});
+function splitSegmentAtHalf(a,b){
+ const p=segmentPoints(a,b),q0=lerp(p[0],p[1],.5),q1=lerp(p[1],p[2],.5),q2=lerp(p[2],p[3],.5);
+ const r0=lerp(q0,q1,.5),r1=lerp(q1,q2,.5),s=lerp(r0,r1,.5);
+ a.ox=q0.x;a.oy=q0.y;b.ix=q2.x;b.iy=q2.y;
+ return anchor('cp-'+(idCounter++),s,r0,r1,'smooth');
+}
+document.getElementById('add').onclick=()=>{
+ let best=-1,bestLength=-1;for(let i=0;i<model.anchors.length;i++){const n=(i+1)%model.anchors.length,l=segmentLength(model.anchors[i],model.anchors[n]);if(l>bestLength){bestLength=l;best=i}}
+ pushUndo();const oldCount=model.anchors.length,start=model.anchors[best],end=model.anchors[(best+1)%oldCount],inserted=splitSegmentAtHalf(start,end);
+ model.anchors.splice(best+1,0,inserted);
+ const mirroredSegmentStartOld=(oldCount-(best+1))%oldCount,mirroredSegmentStart=mirroredSegmentStartOld+(mirroredSegmentStartOld>=best+1?1:0);
+ const mirrored=anchor(inserted.id+'-mirror',point(-inserted.x,inserted.y),point(-inserted.ox,inserted.oy),point(-inserted.ix,inserted.iy),inserted.mode);
+ model.anchors.splice(mirroredSegmentStart+1,0,mirrored);
+ syncSymmetryAt(model.anchors.indexOf(start),'out');syncSymmetryAt(model.anchors.indexOf(end),'in');selected=model.anchors.indexOf(inserted);
+ feedbackEl.textContent='Zwei spiegelgleiche Kontrollpunkte eingefügt. Beide Kurvenhälften behalten ihre exakte ursprüngliche Bézier-Form.';draw();
+};
+function controlSpeedBound(p){return 3*Math.max(Math.hypot(p[1].x-p[0].x,p[1].y-p[0].y),Math.hypot(p[2].x-p[1].x,p[2].y-p[1].y),Math.hypot(p[3].x-p[2].x,p[3].y-p[2].y))}
+function fitMergedCurve(prev,removed,next,tolerance){
+ const p0=point(prev.x,prev.y),p3=point(next.x,next.y);
+ const first=segmentPoints(prev,removed),second=segmentPoints(removed,next);
+ let saa=0,sab=0,sbb=0,sax=0,sbx=0,say=0,sby=0;
+ const fitSamples=160;
+ for(let k=1;k<fitSamples;k++){
+  const u=k/fitSamples,target=u<.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
+  const v=1-u,A=3*v*v*u,B=3*v*u*u;
+  const base=point(v*v*v*p0.x+u*u*u*p3.x,v*v*v*p0.y+u*u*u*p3.y);
+  const rx=target.x-base.x,ry=target.y-base.y;
+  saa+=A*A;sab+=A*B;sbb+=B*B;sax+=A*rx;sbx+=B*rx;say+=A*ry;sby+=B*ry;
+ }
+ const det=saa*sbb-sab*sab;
+ if(Math.abs(det)<1e-12)return null;
+ const c1=point((sax*sbb-sbx*sab)/det,(say*sbb-sby*sab)/det);
+ const c2=point((sbx*saa-sax*sab)/det,(sby*saa-say*sab)/det);
+ const merged=[p0,c1,c2,p3];
+ // Bound the deviation between samples using a global derivative (Lipschitz) bound.
+ // The two old segments run over half the parameter interval, hence the factor 2.
+ const oldSpeed=2*Math.max(controlSpeedBound(first),controlSpeedBound(second));
+ const newSpeed=controlSpeedBound(merged);
+ const lipschitz=oldSpeed+newSpeed;
+ const requested=Math.max(Number(tolerance)||1,0.001);
+ const count=Math.min(100000,Math.max(4096,Math.ceil(lipschitz/(2*requested*0.1))));
+ let maxSampled=0,sum=0;
+ for(let k=0;k<=count;k++){
+  const u=k/count,target=u<=.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
+  const fitted=bezier(p0,c1,c2,p3,u),err=Math.hypot(target.x-fitted.x,target.y-fitted.y);
+  maxSampled=Math.max(maxSampled,err);sum+=err*err;
+ }
+ const upperBound=maxSampled+lipschitz/(2*count);
+ return {c1:c1,c2:c2,max:maxSampled,upperBound:upperBound,rms:Math.sqrt(sum/(count+1)),samples:count+1};
+}
+document.getElementById('del').onclick=()=>{
+ const i=selected,n=model.anchors.length,partnerIndex=mirrorIndex(i,n);
+ if(n<=4){feedbackEl.textContent='Mindestens ein spiegelgleiches Punktpaar muss erhalten bleiben.';return}
+ if(partnerIndex===i){feedbackEl.textContent='Nose und Tail liegen auf der Mittellinie und können nicht gelöscht werden. Verschiebe sie oder bearbeite ihre Griffe.';return}
+ const prev=model.anchors[(i+n-1)%n],removed=model.anchors[i],next=model.anchors[(i+1)%n],mirrorRemoved=model.anchors[partnerIndex],tol=Number(toleranceInput.value),fit=fitMergedCurve(prev,removed,next,tol);
+ if(!fit){feedbackEl.textContent='Löschen abgebrochen: Kurvenanpassung numerisch nicht stabil.';return}
+ if(fit.upperBound>tol+1e-8){feedbackEl.textContent='Nicht gelöscht: konservative Abweichungsobergrenze '+fit.upperBound.toFixed(3)+' mm (gemessener Maximalwert '+fit.max.toFixed(3)+' mm) liegt über der Toleranz von '+tol.toFixed(2)+' mm. Toleranz erhöhen oder einen anderen Punkt wählen.';return}
+ pushUndo();prev.ox=fit.c1.x;prev.oy=fit.c1.y;next.ix=fit.c2.x;next.iy=fit.c2.y;model.anchors=model.anchors.filter(a=>a!==removed&&a!==mirrorRemoved);
+ syncSymmetryAt(model.anchors.indexOf(prev),'out');syncSymmetryAt(model.anchors.indexOf(next),'in');selected=model.anchors.indexOf(prev);
+ feedbackEl.textContent='Beide spiegelgleichen Punkte gelöscht. Konservative Abweichungsobergrenze: '+fit.upperBound.toFixed(3)+' mm; RMS: '+fit.rms.toFixed(3)+' mm (Grenze '+tol.toFixed(2)+' mm).';draw();
+};
+
+document.getElementById('mode').onclick=()=>{
+ pushUndo();const a=model.anchors[selected],next=a.mode==='corner'?'smooth':a.mode==='smooth'?'symmetric':'corner';setMode(a,next);syncSymmetryAt(selected,'out');
+ feedbackEl.textContent='Kontinuitätsmodus geändert: '+next+'. Die Gegenseite bleibt spiegelgleich.';draw();
+};
+function changeDimensions(){
+ const newL=Math.max(500,Math.min(4000,Number(lengthInput.value)||model.length_mm));
+ const newW=Math.max(100,Math.min(1200,Number(widthInput.value)||model.width_mm));
+ if(newL===model.length_mm&&newW===model.width_mm)return;
+ pushUndo();const sx=newW/model.width_mm,sy=newL/model.length_mm;
+ model.anchors.forEach(a=>{a.x*=sx;a.ox*=sx;a.ix*=sx;a.y*=sy;a.oy*=sy;a.iy*=sy});
+ viewport.x*=sx;viewport.y*=sy;
+ if(Number.isFinite(viewport.baseWidth))viewport.baseWidth*=sx;
+ if(Number.isFinite(viewport.baseHeight))viewport.baseHeight*=sy;
+ model.width_mm=newW;model.length_mm=newL;lengthInput.value=newL;widthInput.value=newW;
+ feedbackEl.textContent='Geometrie proportional skaliert; alle Anker und Griffe bleiben in mm definiert.';draw();
+}
+lengthInput.onchange=changeDimensions;widthInput.onchange=changeDimensions;
+document.getElementById('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(state());restoreState(undoStack.pop())};
+document.getElementById('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(state());restoreState(redoStack.pop())};
+document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;viewport={x:0,y:0,zoom:1,baseWidth:null,baseHeight:null};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
+document.getElementById('export').onclick=()=>{
+ const validation=validateOutline();if(!validation.valid){feedbackEl.textContent='Export gesperrt: '+validation.reason;return}
+ const data={document_type:'surfwing.outline',schema_version:'0.2.0',name:model.name,units:'mm',closed:true,length_mm:model.length_mm,width_mm:model.width_mm,anchors:model.anchors.map(a=>({id:a.id,position:[a.x,a.y],incoming_handle:[a.ix,a.iy],outgoing_handle:[a.ox,a.oy],continuity:a.mode}))};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='surfwing-outline-mm.json';link.click();URL.revokeObjectURL(url);
+};
+document.getElementById('import').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=evt=>{
+ const file=evt.target.files[0];if(!file)return;
+ const reader=new FileReader();reader.onload=()=>{
+  try{
+   const data=JSON.parse(reader.result);if(!Array.isArray(data.anchors)||data.anchors.length<4||data.anchors.length%2!==0)throw new Error('Eine symmetrische Draufsicht benötigt mindestens vier Anker und eine gerade Anzahl von Kontrollpunkten.');
+   if(data.units!=='mm')throw new Error('Import erwartet Koordinaten in Millimetern (units = mm).');
+   const imported=data.anchors.map((a,i)=>{
+    const values=[...(a.position||[]),...(a.incoming_handle||[]),...(a.outgoing_handle||[])];
+    if(values.length!==6||!values.every(Number.isFinite))throw new Error('Ungültige Koordinaten bei Anker '+i+'.');
+    return anchor(String(a.id||('import-'+i)),point(a.position[0],a.position[1]),point(a.incoming_handle[0],a.incoming_handle[1]),point(a.outgoing_handle[0],a.outgoing_handle[1]),['corner','smooth','symmetric'].includes(a.continuity)?a.continuity:'corner');
+   });
+   pushUndo();model={name:data.name||'Imported board',units:'mm',closed:true,length_mm:Number(data.length_mm)||1600,width_mm:Number(data.width_mm)||520,anchors:imported};
+   enforceModelSymmetry(model);selected=0;viewport={x:0,y:0,zoom:1,baseWidth:null,baseHeight:null};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Kontur aus JSON geladen und an der Mittellinie symmetrisch ausgerichtet.';draw();
+  }catch(err){feedbackEl.textContent='Importfehler: '+err.message}
+ };
+ reader.readAsText(file);evt.target.value='';
+};
+draw();
+</script>
+</body></html>
