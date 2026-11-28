@@ -47,6 +47,11 @@ The transverse profile kernel and analytic section-loft mesh are additive paths;
 
 - [SurfWing Shape Master Model 001](docs/domain/shape-master-model-001.md)\n- [Shape Document Schema 0.1.0 — implementation and limitations](docs/domain/shape-document-schema-implementation-001.md)\n- [JSON Schema Draft 2020-12](schemas/shape-document-0.1.0.schema.json)\n- Domain fixtures: `examples/domain/`
 
+## Interactive editor prototype
+
+- [Standalone board outline editor](prototype/board-outline-editor.html) — drag anchors and Bézier handles, toggle Corner/Smooth, approximate add/delete, undo/redo, JSON import/export.
+- [Prototype status and limitations](docs/engineering/interactive-outline-editor-prototype-001.md)
+
 ## Run
 
 Build starter board mesh:
