@@ -1,5 +1,8 @@
 import copy
 import json
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -87,6 +90,40 @@ class OutlineEditorAdapterTests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(ValueError, "self-intersection"):
             merge_outline_into_shape_document(outline, copy.deepcopy(TEMPLATE))
+
+
+    def test_cli_writes_schema_valid_shape_document(self):
+        outline_path = None
+        output_path = None
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            outline_path = temp / "editor outline.json"
+            output_path = temp / "converted shape.json"
+            outline_path.write_text(json.dumps(outline_fixture()), encoding="utf-8")
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "src.domain.outline_editor_adapter",
+                    str(outline_path),
+                    "--template",
+                    str(ROOT / "examples/domain/wingfoil-board-0.1.json"),
+                    "--output",
+                    str(output_path),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(output_path.is_file())
+            converted = json.loads(output_path.read_text(encoding="utf-8"))
+            validate_shape_document(converted)
+            self.assertEqual(converted["board"]["outline_curve_id"], "curve-outline")
+            self.assertEqual(converted["board"]["stations"][2]["width_mm"], 520.0)
+            self.assertIn("Validated Shape Document", completed.stdout)
 
     def test_duplicate_anchor_ids_and_non_finite_coordinates_are_rejected(self):
         outline = outline_fixture()
