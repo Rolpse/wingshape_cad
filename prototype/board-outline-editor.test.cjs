@@ -9,6 +9,8 @@ const html = fs.readFileSync(path.join(__dirname, 'board-outline-editor.html'), 
 const match = html.match(/<script>([\s\S]*?)<\/script>/i);
 assert.ok(match, 'editor script must exist');
 const source = match[1];
+const SCREEN_WIDTH = 900;
+const SCREEN_HEIGHT = 450;
 
 function createHarness(tolerance = '1.0') {
   const elements = new Map();
@@ -24,14 +26,26 @@ function createHarness(tolerance = '1.0') {
     innerHTML: '', attributes: {},
     setAttribute(name, value) { this.attributes[name] = value; },
     addEventListener(name, callback) { listeners[name] = callback; },
-    createSVGPoint() { return { x: 0, y: 0, matrixTransform() { return { x: this.x, y: this.y }; } }; },
+    screenTransform() {
+      const [vx, vy, vw, vh] = this.attributes.viewBox.split(' ').map(Number);
+      const scale = Math.min(SCREEN_WIDTH / vw, SCREEN_HEIGHT / vh);
+      return { vx, vy, vw, vh, scale, left:(SCREEN_WIDTH-vw*scale)/2, top:(SCREEN_HEIGHT-vh*scale)/2 };
+    },
+    createSVGPoint() {
+      const owner = this;
+      return { x: 0, y: 0, matrixTransform() {
+        const t = owner.screenTransform();
+        return { x:t.vx+(this.x-t.left)/t.scale, y:t.vy+(this.y-t.top)/t.scale };
+      } };
+    },
     getScreenCTM() { return { inverse() { return {}; } }; },
     setPointerCapture() {}
   };
   const document = { getElementById(id) { return id === 'svg' ? svg : element(id); } };
   const context = vm.createContext({ document, confirm: () => true });
   new vm.Script(source, { filename: 'board-outline-editor.js' }).runInContext(context);
-  return { context, svg, listeners, element, model: () => vm.runInContext('model', context), selected: () => vm.runInContext('selected', context), validate: () => vm.runInContext('validateOutline()', context), redraw: () => vm.runInContext('draw()', context) };
+  const clientPoint = world => { const t=svg.screenTransform(); return {x:t.left+(world.x-t.vx)*t.scale,y:t.top+(world.y-t.vy)*t.scale}; };
+  return { context, svg, listeners, element, clientPoint, model: () => vm.runInContext('model', context), selected: () => vm.runInContext('selected', context), validate: () => vm.runInContext('validateOutline()', context), redraw: () => vm.runInContext('draw()', context) };
 }
 
 function assertSymmetric(anchors) {
@@ -183,22 +197,26 @@ test('dragging an anchor or handle on either side mirrors the other side', () =>
   const app = createHarness();
   const anchors = app.model().anchors;
   const before = JSON.parse(JSON.stringify(anchors));
+  const firstViewBox=app.svg.attributes.viewBox, start=app.clientPoint(before[1]), scale=app.svg.screenTransform().scale;
   app.listeners.pointerdown({
     target:{closest:()=>({dataset:{type:'anchor',i:'1'}})},
-    clientX:before[1].x, clientY:before[1].y, pointerId:1
+    clientX:start.x, clientY:start.y, pointerId:1
   });
-  app.listeners.pointermove({clientX:before[1].x+24,clientY:before[1].y+18});
+  app.listeners.pointermove({clientX:start.x+24,clientY:start.y+18});
+  app.listeners.pointermove({clientX:start.x+48,clientY:start.y+36});
+  assert.equal(app.svg.attributes.viewBox,firstViewBox,'camera must remain fixed during anchor drag');
   app.listeners.pointerup();
-  assert.ok(Math.abs(anchors[1].x-(before[1].x+24))<1e-8);
-  assert.ok(Math.abs(anchors[1].y-(before[1].y+18))<1e-8);
+  assert.ok(Math.abs(anchors[1].x-(before[1].x+48/scale))<1e-8);
+  assert.ok(Math.abs(anchors[1].y-(before[1].y+36/scale))<1e-8);
   assertSymmetric(anchors);
 
-  const oldPortOut={x:anchors[5].ox,y:anchors[5].oy};
+  const oldPortOut={x:anchors[5].ox,y:anchors[5].oy},portScreen=app.clientPoint(oldPortOut),portViewBox=app.svg.attributes.viewBox;
   app.listeners.pointerdown({
     target:{closest:()=>({dataset:{type:'out',i:'5'}})},
-    clientX:oldPortOut.x, clientY:oldPortOut.y, pointerId:2
+    clientX:portScreen.x, clientY:portScreen.y, pointerId:2
   });
-  app.listeners.pointermove({clientX:oldPortOut.x-13,clientY:oldPortOut.y+9});
+  app.listeners.pointermove({clientX:portScreen.x-13,clientY:portScreen.y+9});
+  assert.equal(app.svg.attributes.viewBox,portViewBox,'camera must remain fixed during handle drag');
   app.listeners.pointerup();
   assertSymmetric(anchors);
   assert.equal(anchors[1].ix,-anchors[5].ox);
@@ -208,14 +226,16 @@ test('dragging an anchor or handle on either side mirrors the other side', () =>
 test('tail outgoing X handle is freely movable and its opposite handle stays mirrored', () => {
   const app = createHarness();
   const tail = app.model().anchors[3];
-  const initialOutX = tail.ox;
+  const initialOutX = tail.ox,screen=app.clientPoint(tail),scale=app.svg.screenTransform().scale;
+  const initialViewBox=app.svg.attributes.viewBox;
   app.listeners.pointerdown({
     target:{closest:()=>({dataset:{type:'out',i:'3'}})},
-    clientX:tail.ox, clientY:tail.oy, pointerId:7
+    clientX:screen.x, clientY:screen.y, pointerId:7
   });
-  app.listeners.pointermove({clientX:initialOutX+32,clientY:tail.oy});
+  app.listeners.pointermove({clientX:screen.x+32,clientY:screen.y});
+  assert.equal(app.svg.attributes.viewBox,initialViewBox,'camera must stay fixed during tail-handle drag');
   app.listeners.pointerup();
-  assert.ok(Math.abs(tail.ox-(initialOutX+32))<1e-8, 'tail outgoing handle X must follow the pointer');
+  assert.ok(Math.abs(tail.ox-(initialOutX+32/scale))<1e-8, 'tail outgoing handle X must follow the pointer');
   assert.ok(Math.abs(tail.ix+tail.ox)<1e-8, 'incoming handle must mirror outgoing X');
   assert.ok(Math.abs(tail.oy-tail.y)<1e-8 && Math.abs(tail.iy-tail.y)<1e-8);
   assertSymmetric(app.model().anchors);
