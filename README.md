@@ -32,7 +32,7 @@ The transverse profile kernel and analytic section-loft mesh are additive paths.
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
 - Hydrodynamics calculations: src/hydrodynamics/performance.py\n- Outline-to-Shape-Document adapter: src/domain/outline_editor_adapter.py
-- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (81 Python tests); prototype/board-outline-editor.test.cjs (11 Node.js regression tests)
+- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (82 Python tests); prototype/board-outline-editor.test.cjs (11 Node.js regression tests)
 - Engineering contracts/reviews: docs/engineering and docs/board
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
