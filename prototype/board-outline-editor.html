@@ -30,9 +30,10 @@ button:hover{background:#35556b}button:disabled{opacity:.4;cursor:not-allowed}
 svg{width:100%;height:100%;touch-action:none;display:block}
 .board-fill{fill:#4a839f;fill-opacity:.22;stroke:#82c5e5;stroke-width:2.5;stroke-linejoin:round}
 .centerline{stroke:#587183;stroke-width:1.5;stroke-dasharray:12 12;pointer-events:none}
-.handle-line{stroke:#d9ad64;stroke-width:2;stroke-dasharray:8 7;opacity:.8}
-.handle{fill:#e2b45f;stroke:#0d151c;stroke-width:2;cursor:grab}
-.anchor{fill:#f4f7fa;stroke:#163347;stroke-width:3;cursor:move}
+.handle-line{stroke:#d9ad64;stroke-width:1.1;stroke-dasharray:8 7;opacity:.8}
+.handle-hit,.anchor-hit{fill:transparent;stroke:none;pointer-events:all;cursor:grab}
+.handle{fill:#e2b45f;stroke:#0d151c;stroke-width:1.1;pointer-events:none}
+.anchor{fill:#f4f7fa;stroke:#163347;stroke-width:1.5;pointer-events:none}
 .anchor.selected{fill:#ff9b54;stroke:white}
 #sectionSvg .deck{stroke:#a8d7f0;fill:none;stroke-width:3}#sectionSvg .bottom{stroke:#5db9a0;fill:none;stroke-width:3}
 @media(max-width:850px){main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #334654}.workspace{grid-template-rows:65vh 150px;min-height:auto}}
@@ -221,9 +222,12 @@ function draw(){
  model.anchors.forEach((a,i)=>{
   handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ix+'" y2="'+a.iy+'"/>');
   handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ox+'" y2="'+a.oy+'"/>');
-  handles.push('<circle class="handle" data-type="in" data-i="'+i+'" cx="'+a.ix+'" cy="'+a.iy+'" r="18"/>');
-  handles.push('<circle class="handle" data-type="out" data-i="'+i+'" cx="'+a.ox+'" cy="'+a.oy+'" r="18"/>');
-  nodes.push('<circle class="anchor '+(i===selected?'selected':'')+'" data-type="anchor" data-i="'+i+'" cx="'+a.x+'" cy="'+a.y+'" r="25"/>');
+  handles.push('<circle class="handle-hit" data-type="in" data-i="'+i+'" cx="'+a.ix+'" cy="'+a.iy+'" r="18"/>');
+  handles.push('<circle class="handle" cx="'+a.ix+'" cy="'+a.iy+'" r="5"/>');
+  handles.push('<circle class="handle-hit" data-type="out" data-i="'+i+'" cx="'+a.ox+'" cy="'+a.oy+'" r="18"/>');
+  handles.push('<circle class="handle" cx="'+a.ox+'" cy="'+a.oy+'" r="5"/>');
+  nodes.push('<circle class="anchor-hit" data-type="anchor" data-i="'+i+'" cx="'+a.x+'" cy="'+a.y+'" r="25"/>');
+  nodes.push('<circle class="anchor '+(i===selected?'selected':'')+'" cx="'+a.x+'" cy="'+a.y+'" r="7"/>');
  });
  const centerline='<line class="centerline" x1="0" y1="'+bounds.minY+'" x2="0" y2="'+bounds.maxY+'"/><text x="8" y="'+(bounds.minY+margin*.25)+'" fill="#8ea8b8" font-size="18">MITTELLINIE · SPIEGELSYMMETRIE</text>';
  const left=viewport.x-viewWidth/2,bottom=viewport.y+viewHeight/2,axisX=left+viewWidth*.09,axisY=bottom-viewHeight*.10,axisLen=Math.min(viewWidth*.06,viewHeight*.045),axisWidth=Math.max(2,axisLen*.055),axisFont=axisLen*.34;
