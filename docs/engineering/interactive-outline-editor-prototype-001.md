@@ -29,7 +29,7 @@ Run:
 node --test prototype/board-outline-editor.test.cjs
 ```
 
-The Python test workflow also runs these tests using Node.js 24. The eleven regression tests cover script parsing, the closed Bézier fill path, exact insertion preservation, tolerance-accepted and tolerance-rejected deletion, undo/redo, mm scaling, continuity-mode transitions, numeric coordinate entry, viewport navigation, calibrated outside dimensions, self-intersection rejection and degenerate-anchor rejection. These tests use a lightweight DOM stub; they do not replace manual browser testing.
+The Python test workflow also runs these tests using Node.js 24. The eleven Node.js regression tests cover script parsing, the closed Bézier fill path, exact insertion preservation, tolerance-accepted and tolerance-rejected deletion, undo/redo, mm scaling, continuity-mode transitions, numeric coordinate entry, viewport navigation, calibrated outside dimensions, self-intersection rejection and degenerate-anchor rejection. These tests use a lightweight DOM stub; they do not replace manual browser testing. The Python adapter suite covers Shape Document mapping, station-width sampling, guide scaling, immutability, invalid outlines, duplicate/non-finite input and a CLI end-to-end export. The current CI checkpoint contains 82 passing Python tests and 11 passing Node.js tests.
 
 ## Shape Document v0.1.0 adapter
 
