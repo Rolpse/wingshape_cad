@@ -5,7 +5,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 ## Scope and development priorities
 
 - Parametric board-shape CAD and editable outline/section curves.
-- Control-point editing: stable anchors, two handles, corner/smooth continuity, insert/delete and undo/redo.
+- Control-point editing: stable anchors, two handles, corner/smooth/symmetric continuity, insert/delete and undo/redo.
 - Scan-to-CAD / reverse engineering: preserve raw scans, register, extract sections, fit editable curves and validate deviations.
 - CAM/CNC workflow for the custom MOCNC, Estlcam and Arduino UNO; fail-closed NC checks and measured machine limits.
 - Foil/board hydrodynamics: hydrostatics, first-order screening, CFD benchmarking and experimental validation.
@@ -23,7 +23,7 @@ Engineering working repository for SurfWing CAD, the parametric wingfoil-board a
 - Restricted static NC validator (G00/G01 subset).
 - First-order hydrofoil/board hydrodynamics screening calculations.
 
-The transverse profile kernel and analytic section-loft mesh are additive paths; integration into the legacy station generator, profile interpolation and the interactive CAD editor remain pending. These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
+The transverse profile kernel and analytic section-loft mesh are additive paths. The new browser outline editor is still a separate prototype and is not yet connected to the geometry kernel, section model or 3D loft. These are prototypes, not a complete interactive CAD application, validated CAM engine, CFD solver, or machine-approved NC workflow.
 
 ## Imported source and tests
 
@@ -32,7 +32,7 @@ The transverse profile kernel and analytic section-loft mesh are additive paths;
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
 - Hydrodynamics calculations: src/hydrodynamics/performance.py
-- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (75 tests currently passing in CI)
+- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (75 Python tests); prototype/board-outline-editor.test.cjs (6 Node.js regression tests)
 - Engineering contracts/reviews: docs/engineering and docs/board
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
@@ -51,6 +51,11 @@ The transverse profile kernel and analytic section-loft mesh are additive paths;
 
 - [Standalone board outline editor](prototype/board-outline-editor.html) — drag anchors and Bézier handles, toggle Corner/Smooth, exact midpoint insertion / approximate delete, undo/redo, JSON import/export.
 - [Prototype status and limitations](docs/engineering/interactive-outline-editor-prototype-001.md)
+
+## Interactive editor prototype
+
+- [Standalone board outline editor](prototype/board-outline-editor.html) — closed Bézier outline, mm coordinates, two handles per anchor, exact anchor insertion, tolerance-checked deletion and JSON import/export.
+- [Editor implementation notes](docs/engineering/interactive-outline-editor-prototype-001.md)
 
 ## Run
 
