@@ -32,7 +32,7 @@ The transverse profile kernel and analytic section-loft mesh are additive paths.
 - Starter shape: examples/board/wingfoil-1600x520-starter.json
 - CAM static validator: src/cam/estlcam_nc_validator.py
 - Hydrodynamics calculations: src/hydrodynamics/performance.py
-- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (75 Python tests); prototype/board-outline-editor.test.cjs (6 Node.js regression tests)
+- Tests: tests/board, tests/cam, tests/hydrodynamics, tests/domain (75 Python tests); prototype/board-outline-editor.test.cjs (8 Node.js regression tests)
 - Engineering contracts/reviews: docs/engineering and docs/board
 - Acceptance plans: docs/quality
 - Issue drafts: docs/engineering/issues
@@ -54,7 +54,7 @@ The transverse profile kernel and analytic section-loft mesh are additive paths.
 
 ## Interactive editor prototype
 
-- [Standalone board outline editor](prototype/board-outline-editor.html) — closed Bézier outline, mm coordinates, two handles per anchor, exact anchor insertion, tolerance-checked deletion and JSON import/export.
+- [Standalone board outline editor](prototype/board-outline-editor.html) — closed Bézier outline, mm coordinates, numeric anchor/handle editing, zoom/pan, exact anchor insertion, tolerance-checked deletion and JSON import/export.
 - [Editor implementation notes](docs/engineering/interactive-outline-editor-prototype-001.md)
 
 ## Run
