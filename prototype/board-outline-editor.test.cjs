@@ -12,6 +12,7 @@ const source = match[1];
 
 function createHarness(tolerance = '1.0') {
   const elements = new Map();
+  const listeners = {};
   function element(id) {
     if (!elements.has(id)) elements.set(id, {
       value: id === 'length' ? '1600' : id === 'width' ? '520' : id === 'tolerance' ? tolerance : '',
@@ -22,7 +23,7 @@ function createHarness(tolerance = '1.0') {
   const svg = {
     innerHTML: '', attributes: {},
     setAttribute(name, value) { this.attributes[name] = value; },
-    addEventListener() {},
+    addEventListener(name, callback) { listeners[name] = callback; },
     createSVGPoint() { return { x: 0, y: 0, matrixTransform() { return { x: this.x, y: this.y }; } }; },
     getScreenCTM() { return { inverse() { return {}; } }; },
     setPointerCapture() {}
@@ -30,7 +31,7 @@ function createHarness(tolerance = '1.0') {
   const document = { getElementById(id) { return id === 'svg' ? svg : element(id); } };
   const context = vm.createContext({ document, confirm: () => true });
   new vm.Script(source, { filename: 'board-outline-editor.js' }).runInContext(context);
-  return { context, svg, element, model: () => vm.runInContext('model', context), selected: () => vm.runInContext('selected', context) };
+  return { context, svg, listeners, element, model: () => vm.runInContext('model', context), selected: () => vm.runInContext('selected', context) };
 }
 
 function cubic(p0, p1, p2, p3, t) {
@@ -124,4 +125,45 @@ test('continuity mode cycles Corner, Smooth and Symmetric', () => {
   assert.ok(Math.abs(incoming-outgoing) < 1e-8);
   app.element('mode').onclick();
   assert.equal(app.model().anchors[0].mode, 'corner');
+});
+
+
+test('numeric coordinate entry moves the anchor and both handles in millimetres', () => {
+  const app = createHarness();
+  app.element('anchorX').value = '12.5';
+  app.element('anchorY').value = '-720.25';
+  app.element('inX').value = '-34';
+  app.element('inY').value = '-680';
+  app.element('outX').value = '38';
+  app.element('outY').value = '-755';
+  app.element('applyCoords').onclick();
+  const a = app.model().anchors[0];
+  assert.equal(a.x, 12.5);
+  assert.equal(a.y, -720.25);
+  assert.equal(a.ix, -34);
+  assert.equal(a.iy, -680);
+  assert.equal(a.ox, 38);
+  assert.equal(a.oy, -755);
+});
+
+test('zoom buttons, fit view and blank-canvas panning update the viewport', () => {
+  const app = createHarness();
+  const initial = app.svg.attributes.viewBox.split(' ').map(Number);
+  app.element('zoomIn').onclick();
+  const zoomed = app.svg.attributes.viewBox.split(' ').map(Number);
+  assert.ok(zoomed[2] < initial[2]);
+  app.element('fitView').onclick();
+  const fitted = app.svg.attributes.viewBox.split(' ').map(Number);
+  assert.ok(Math.abs(fitted[2] - initial[2]) < 1e-8);
+  app.listeners.pointerdown({target:{closest:()=>null},clientX:0,clientY:0,pointerId:1});
+  app.listeners.pointermove({clientX:15,clientY:25});
+  app.listeners.pointerup();
+  const panned = app.svg.attributes.viewBox.split(' ').map(Number);
+  assert.notEqual(panned[0], fitted[0]);
+  assert.notEqual(panned[1], fitted[1]);
+  let prevented = false;
+  app.listeners.wheel({clientX:0,clientY:0,deltaY:-100,preventDefault(){prevented=true}});
+  const wheelZoom = app.svg.attributes.viewBox.split(' ').map(Number);
+  assert.equal(prevented, true);
+  assert.ok(wheelZoom[2] < panned[2]);
 });
