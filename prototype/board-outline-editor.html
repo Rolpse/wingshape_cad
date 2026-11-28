@@ -15,6 +15,9 @@ button:hover{background:#35556b}button:disabled{opacity:.4;cursor:not-allowed}
 .row{display:flex;gap:6px;flex-wrap:wrap}.notice{font-size:12px;color:#a8bac9;line-height:1.45;margin:2px 0}
 #status{font-size:12px;color:#d7e4ed;padding:8px;background:#0d151c;border:1px solid #334654;border-radius:5px}
 #feedback{font-size:12px;line-height:1.45;color:#e8c98d;min-height:34px}
+.coord-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.coord-grid label{display:flex;flex-direction:column;align-items:stretch;gap:3px}
+.coord-grid input{width:100%}
 .workspace{padding:14px;display:grid;grid-template-rows:minmax(430px,1fr) 150px;gap:12px;min-height:78vh}
 .panel{background:#0d151c;border:1px solid #334654;border-radius:8px;overflow:hidden;position:relative}
 .panel-title{position:absolute;top:10px;left:12px;z-index:2;color:#b8cbd8;font-size:12px;pointer-events:none}
@@ -36,6 +39,13 @@ svg{width:100%;height:100%;touch-action:none;display:block}
 <label>Boardlänge (mm) <input id="length" type="number" value="1600" min="500" max="4000" step="10"></label>
 <label>Max. Breite (mm) <input id="width" type="number" value="520" min="100" max="1200" step="5"></label>
 <label>Lösch-Toleranz (mm) <input id="tolerance" type="number" value="1.0" min="0.1" max="20" step="0.1"></label>
+<p class="notice"><b>Exakte Punktkoordinaten (mm)</b></p>
+<div class="coord-grid">
+<label>Anker X <input id="anchorX" type="number" step="0.1"></label><label>Anker Y <input id="anchorY" type="number" step="0.1"></label>
+<label>Einlauf X <input id="inX" type="number" step="0.1"></label><label>Einlauf Y <input id="inY" type="number" step="0.1"></label>
+<label>Auslauf X <input id="outX" type="number" step="0.1"></label><label>Auslauf Y <input id="outY" type="number" step="0.1"></label>
+</div><button id="applyCoords">Koordinaten übernehmen</button>
+<div class="row"><button id="zoomIn">Zoom +</button><button id="zoomOut">Zoom −</button><button id="fitView">Ansicht einpassen</button></div>
 <div class="row"><button id="add">Punkt einfügen</button><button id="del">Punkt löschen</button></div>
 <div class="row"><button id="mode">Modus: Corner</button><button id="undo">Undo</button><button id="redo">Redo</button></div>
 <div class="row"><button id="reset">Reset</button><button id="export">JSON export</button><button id="import">JSON import</button><input id="file" type="file" accept=".json,application/json" hidden></div>
@@ -47,7 +57,7 @@ svg{width:100%;height:100%;touch-action:none;display:block}
 <p class="notice">Der Querschnitt ist weiterhin nur ein Platzhalter. Noch keine Deck-/Bottom-Flächen, 3D-Loft, CAD-Kernel, STEP/STL oder CNC-Ausgabe.</p>
 </aside>
 <section class="workspace">
-<div class="panel"><div class="panel-title">Draufsicht · Maße und Griffe in mm</div><svg id="svg" viewBox="-350 -850 700 1700" preserveAspectRatio="xMidYMid meet" aria-label="Board outline editor"></svg></div>
+<div class="panel"><div class="panel-title">Draufsicht · Maße und Griffe in mm</div><svg id="svg" viewBox="-350 -850 700 1700" preserveAspectRatio="xMidYMid meet" tabindex="0" aria-label="Board outline editor"></svg></div>
 <div class="panel"><div class="panel-title">Querschnitt-Skizze · Platzhalter</div><svg id="sectionSvg" viewBox="0 0 900 220"><path class="deck" d="M170 100 Q450 70 730 100"/><path class="bottom" d="M170 125 Q450 150 730 125"/><line x1="170" y1="100" x2="170" y2="125" stroke="#71899b"/><line x1="730" y1="100" x2="730" y2="125" stroke="#71899b"/><text x="450" y="185" text-anchor="middle" fill="#9bb0c0">Geometrie-gekoppelter Section-Editor folgt</text></svg></div>
 </section>
 </main>
@@ -58,6 +68,8 @@ const widthInput=document.getElementById('width');
 const toleranceInput=document.getElementById('tolerance');
 const statusEl=document.getElementById('status');
 const feedbackEl=document.getElementById('feedback');
+const coordinateInputs={anchorX:document.getElementById('anchorX'),anchorY:document.getElementById('anchorY'),inX:document.getElementById('inX'),inY:document.getElementById('inY'),outX:document.getElementById('outX'),outY:document.getElementById('outY')};
+let viewport={x:0,y:0,zoom:1};
 let idCounter=7;
 function fromOld(px,py,w,l){return {x:(px-450)*(w/420),y:(py-297.5)*(l/465)}}
 function anchor(id,pos,inP,outP,mode){return {id:id,x:pos.x,y:pos.y,ix:inP.x,iy:inP.y,ox:outP.x,oy:outP.y,mode:mode}}
@@ -92,7 +104,8 @@ function pathData(){
 }
 function draw(){
  const margin=Math.max(60,Math.max(model.width_mm,model.length_mm)*0.06);
- svg.setAttribute('viewBox',(-model.width_mm/2-margin)+' '+(-model.length_mm/2-margin)+' '+(model.width_mm+2*margin)+' '+(model.length_mm+2*margin));
+ const viewWidth=(model.width_mm+2*margin)/viewport.zoom,viewHeight=(model.length_mm+2*margin)/viewport.zoom;
+ svg.setAttribute('viewBox',(viewport.x-viewWidth/2)+' '+(viewport.y-viewHeight/2)+' '+viewWidth+' '+viewHeight);
  const handles=[],nodes=[];
  model.anchors.forEach((a,i)=>{
   handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ix+'" y2="'+a.iy+'"/>');
@@ -104,7 +117,10 @@ function draw(){
  const centerline='<line class="centerline" x1="0" y1="'+(-model.length_mm/2)+'" x2="0" y2="'+(model.length_mm/2)+'"/>';
  svg.innerHTML=centerline+'<path class="board-fill" d="'+pathData()+'"/>'+handles.join('')+nodes.join('');
  const a=model.anchors[selected];
- statusEl.textContent=model.anchors.length+' Kontrollpunkte · ausgewählt: '+a.id+' · '+a.mode+' · '+model.length_mm+' × '+model.width_mm+' mm';
+ statusEl.textContent=model.anchors.length+' Kontrollpunkte · ausgewählt: '+a.id+' · '+a.mode+' · '+model.length_mm+' × '+model.width_mm+' mm · Zoom '+Math.round(viewport.zoom*100)+'%';
+ coordinateInputs.anchorX.value=a.x.toFixed(2);coordinateInputs.anchorY.value=a.y.toFixed(2);
+ coordinateInputs.inX.value=a.ix.toFixed(2);coordinateInputs.inY.value=a.iy.toFixed(2);
+ coordinateInputs.outX.value=a.ox.toFixed(2);coordinateInputs.outY.value=a.oy.toFixed(2);
  document.getElementById('mode').textContent='Modus: '+a.mode;
  document.getElementById('del').disabled=model.anchors.length<=3;
  document.getElementById('undo').disabled=!undoStack.length;
@@ -144,14 +160,17 @@ function setMode(a,newMode){
  a.mode=newMode;
 }
 svg.addEventListener('pointerdown',evt=>{
- const target=evt.target.closest('[data-type]');if(!target)return;
+ const target=evt.target.closest('[data-type]');
+ if(!target){drag={type:'pan',last:svgCoordinates(evt)};svg.setPointerCapture(evt.pointerId);return}
  selected=Number(target.dataset.i);pushUndo();
  drag={i:selected,type:target.dataset.type,last:svgCoordinates(evt)};
  svg.setPointerCapture(evt.pointerId);draw();
 });
 svg.addEventListener('pointermove',evt=>{
  if(!drag)return;
- const now=svgCoordinates(evt),dx=now.x-drag.last.x,dy=now.y-drag.last.y,a=model.anchors[drag.i];
+ const now=svgCoordinates(evt),dx=now.x-drag.last.x,dy=now.y-drag.last.y;
+ if(drag.type==='pan'){viewport.x-=dx;viewport.y-=dy;drag.last=now;draw();return}
+ const a=model.anchors[drag.i];
  if(drag.type==='anchor'){a.x+=dx;a.y+=dy;a.ix+=dx;a.iy+=dy;a.ox+=dx;a.oy+=dy}
  else{
   const h=drag.type==='in'?'i':'o',other=h==='i'?'o':'i';
@@ -166,6 +185,23 @@ svg.addEventListener('pointermove',evt=>{
 });
 svg.addEventListener('pointerup',()=>{drag=null});
 svg.addEventListener('pointercancel',()=>{drag=null});
+svg.addEventListener('wheel',evt=>{
+ if(evt.preventDefault)evt.preventDefault();
+ const fixed=svgCoordinates(evt),oldZoom=viewport.zoom,newZoom=Math.max(.25,Math.min(20,oldZoom*Math.exp(-evt.deltaY*.001))),ratio=oldZoom/newZoom;
+ viewport.x=fixed.x-(fixed.x-viewport.x)*ratio;viewport.y=fixed.y-(fixed.y-viewport.y)*ratio;viewport.zoom=newZoom;draw();
+},{passive:false});
+function zoomBy(factor){viewport.zoom=Math.max(.25,Math.min(20,viewport.zoom*factor));draw()}
+document.getElementById('zoomIn').onclick=()=>zoomBy(1.25);
+document.getElementById('zoomOut').onclick=()=>zoomBy(.8);
+document.getElementById('fitView').onclick=()=>{viewport={x:0,y:0,zoom:1};draw()};
+document.getElementById('applyCoords').onclick=()=>{
+ const ids=['anchorX','anchorY','inX','inY','outX','outY'],values=ids.map(id=>Number(coordinateInputs[id].value));
+ if(!values.every(Number.isFinite)){feedbackEl.textContent='Alle sechs Koordinaten müssen gültige Zahlen in mm sein.';return}
+ pushUndo();const a=model.anchors[selected],oldMode=a.mode;
+ a.x=values[0];a.y=values[1];a.ix=values[2];a.iy=values[3];a.ox=values[4];a.oy=values[5];downgradeIfBroken(a);
+ feedbackEl.textContent='Koordinaten übernommen.'+(oldMode!==a.mode?' Der Kontinuitätsmodus wurde auf Corner gesetzt, weil die Griffe nicht mehr zur bisherigen Bedingung passen.':'');draw();
+};
+svg.addEventListener('keydown',evt=>{if(evt.key==='+'||evt.key==='='){zoomBy(1.25);evt.preventDefault()}else if(evt.key==='-'){zoomBy(.8);evt.preventDefault()}else if(evt.key==='0'){viewport={x:0,y:0,zoom:1};draw();evt.preventDefault()}});
 function splitSegmentAtHalf(a,b){
  const p=segmentPoints(a,b),q0=lerp(p[0],p[1],.5),q1=lerp(p[1],p[2],.5),q2=lerp(p[2],p[3],.5);
  const r0=lerp(q0,q1,.5),r1=lerp(q1,q2,.5),s=lerp(r0,r1,.5);
@@ -233,13 +269,14 @@ function changeDimensions(){
  if(newL===model.length_mm&&newW===model.width_mm)return;
  pushUndo();const sx=newW/model.width_mm,sy=newL/model.length_mm;
  model.anchors.forEach(a=>{a.x*=sx;a.ox*=sx;a.ix*=sx;a.y*=sy;a.oy*=sy;a.iy*=sy});
+ viewport.x*=sx;viewport.y*=sy;
  model.width_mm=newW;model.length_mm=newL;lengthInput.value=newL;widthInput.value=newW;
  feedbackEl.textContent='Geometrie proportional skaliert; alle Anker und Griffe bleiben in mm definiert.';draw();
 }
 lengthInput.onchange=changeDimensions;widthInput.onchange=changeDimensions;
 document.getElementById('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(state());restoreState(undoStack.pop())};
 document.getElementById('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(state());restoreState(redoStack.pop())};
-document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
+document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;viewport={x:0,y:0,zoom:1};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
 document.getElementById('export').onclick=()=>{
  const data={document_type:'surfwing.outline',schema_version:'0.2.0',name:model.name,units:'mm',closed:true,length_mm:model.length_mm,width_mm:model.width_mm,anchors:model.anchors.map(a=>({id:a.id,position:[a.x,a.y],incoming_handle:[a.ix,a.iy],outgoing_handle:[a.ox,a.oy],continuity:a.mode}))};
  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
@@ -258,7 +295,7 @@ document.getElementById('file').onchange=evt=>{
     return anchor(String(a.id||('import-'+i)),point(a.position[0],a.position[1]),point(a.incoming_handle[0],a.incoming_handle[1]),point(a.outgoing_handle[0],a.outgoing_handle[1]),['corner','smooth','symmetric'].includes(a.continuity)?a.continuity:'corner');
    });
    pushUndo();model={name:data.name||'Imported board',units:'mm',closed:true,length_mm:Number(data.length_mm)||1600,width_mm:Number(data.width_mm)||520,anchors:imported};
-   selected=0;lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Kontur aus JSON geladen.';draw();
+   selected=0;viewport={x:0,y:0,zoom:1};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Kontur aus JSON geladen.';draw();
   }catch(err){feedbackEl.textContent='Importfehler: '+err.message}
  };
  reader.readAsText(file);evt.target.value='';
