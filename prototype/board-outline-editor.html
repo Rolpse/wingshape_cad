@@ -132,10 +132,12 @@ function setMode(a,newMode){
   if(li>1e-9){dx=-ix;dy=-iy;lo=li}
   else{
    const i=model.anchors.indexOf(a),prev=model.anchors[(i+model.anchors.length-1)%model.anchors.length],next=model.anchors[(i+1)%model.anchors.length];
-   dx=(prev.x+next.x)/2-a.x;dy=(prev.y+next.y)/2-a.y;lo=Math.hypot(dx,dy)||1;
+   dx=(prev.x+next.x)/2-a.x;dy=(prev.y+next.y)/2-a.y;
+   const directionLength=Math.hypot(dx,dy)||1;dx/=directionLength;dy/=directionLength;
+   lo=Math.min(80,model.length_mm*.05);
   }
  }
- const ux=dx/lo,uy=dy/lo,outLength=lo<1e-9?Math.min(80,model.length_mm*.05):Math.min(lo,80);
+ const ux=dx/lo,uy=dy/lo,outLength=lo;
  const inLength=newMode==='symmetric'?outLength:(li>1e-9?li:outLength);
  a.ox=a.x+ux*outLength;a.oy=a.y+uy*outLength;
  a.ix=a.x-ux*inLength;a.iy=a.y-uy*inLength;
