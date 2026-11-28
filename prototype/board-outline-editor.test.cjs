@@ -205,6 +205,41 @@ test('dragging an anchor or handle on either side mirrors the other side', () =>
   assert.equal(anchors[1].iy,anchors[5].oy);
 });
 
+test('tail outgoing X handle is freely movable and its opposite handle stays mirrored', () => {
+  const app = createHarness();
+  const tail = app.model().anchors[3];
+  const initialOutX = tail.ox;
+  app.listeners.pointerdown({
+    target:{closest:()=>({dataset:{type:'out',i:'3'}})},
+    clientX:tail.ox, clientY:tail.oy, pointerId:7
+  });
+  app.listeners.pointermove({clientX:initialOutX+32,clientY:tail.oy});
+  app.listeners.pointerup();
+  assert.ok(Math.abs(tail.ox-(initialOutX+32))<1e-8, 'tail outgoing handle X must follow the pointer');
+  assert.ok(Math.abs(tail.ix+tail.ox)<1e-8, 'incoming handle must mirror outgoing X');
+  assert.ok(Math.abs(tail.oy-tail.y)<1e-8 && Math.abs(tail.iy-tail.y)<1e-8);
+  assertSymmetric(app.model().anchors);
+  assert.equal(app.validate().valid,true,app.validate().reason);
+});
+
+test('bottom-left orientation indicator shows positive X and Y axes', () => {
+  const app = createHarness();
+  assert.match(app.svg.innerHTML,/class="axis-indicator"/);
+  assert.match(app.svg.innerHTML,/>\+X</);
+  assert.match(app.svg.innerHTML,/>\+Y</);
+});
+
+test('numeric tail outgoing X coordinate remains editable', () => {
+  const app = createHarness();
+  vm.runInContext('selected=3;draw()', app.context);
+  const tail=app.model().anchors[3],newOutX=tail.ox+45;
+  app.element('outX').value=String(newOutX);
+  app.element('applyCoords').onclick();
+  assert.ok(Math.abs(tail.ox-newOutX)<1e-8);
+  assert.ok(Math.abs(tail.ix+tail.ox)<1e-8);
+  assert.equal(app.validate().valid,true,app.validate().reason);
+});
+
 test('zoom buttons, fit view and blank-canvas panning update the viewport', () => {
   const app = createHarness();
   const initial = app.svg.attributes.viewBox.split(' ').map(Number);
