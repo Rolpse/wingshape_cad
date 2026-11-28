@@ -8,16 +8,16 @@ Open `prototype/board-outline-editor.html` in a modern browser. It is a standalo
 
 - Move an anchor by dragging its white/orange marker.
 - Drag the two gold handles to control each Bézier anchor's incoming/outgoing tangent.
-- Toggle the selected anchor between Corner and Smooth. Smooth handles remain collinear; Symmetric is supported by imported model data but not currently exposed as a button.
+- Cycle the selected anchor through Corner → Smooth → Symmetric. Smooth handles remain collinear; Symmetric keeps the two handle lengths equal.
 - Add an approximate anchor or delete an interior anchor.
 - Undo/redo, import/export JSON, and adjust nominal board length/width.
 
 ## Limitations / known defects to address
 
 - The outline display is a polygonal fill plus Bézier curves, so the fill does not exactly follow the curve yet.
-- Anchor insertion is approximate and is not an exact De Casteljau split.
+- Anchor insertion now uses a mathematically exact De Casteljau split at t=0.5 (within floating-point arithmetic).
 - Anchor deletion does not refit with a tolerance bound.
-- Symmetric mode is currently import/data-only.
+- Symmetric mode can now be toggled in the editor.
 - The board dimensions are stored as metadata and do not yet scale the canvas geometry.
 - Undo/redo history snapshots are taken on pointer-down, so a drag gesture creates a single undo entry.
 - Cross-section view is a placeholder, not a geometry-derived section.
