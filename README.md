@@ -49,7 +49,7 @@ The transverse profile kernel and analytic section-loft mesh are additive paths;
 
 ## Interactive editor prototype
 
-- [Standalone board outline editor](prototype/board-outline-editor.html) — drag anchors and Bézier handles, toggle Corner/Smooth, approximate add/delete, undo/redo, JSON import/export.
+- [Standalone board outline editor](prototype/board-outline-editor.html) — drag anchors and Bézier handles, toggle Corner/Smooth, exact midpoint insertion / approximate delete, undo/redo, JSON import/export.
 - [Prototype status and limitations](docs/engineering/interactive-outline-editor-prototype-001.md)
 
 ## Run
