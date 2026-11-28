@@ -197,6 +197,7 @@ test('dragging an anchor or handle on either side mirrors the other side', () =>
   const app = createHarness();
   const anchors = app.model().anchors;
   const before = JSON.parse(JSON.stringify(anchors));
+  const untouchedBefore={...before[2]};
   const firstViewBox=app.svg.attributes.viewBox, start=app.clientPoint(before[1]), scale=app.svg.screenTransform().scale;
   app.listeners.pointerdown({
     target:{closest:()=>({dataset:{type:'anchor',i:'1'}})},
@@ -208,6 +209,7 @@ test('dragging an anchor or handle on either side mirrors the other side', () =>
   app.listeners.pointerup();
   assert.ok(Math.abs(anchors[1].x-(before[1].x+48/scale))<1e-8);
   assert.ok(Math.abs(anchors[1].y-(before[1].y+36/scale))<1e-8);
+  assert.deepEqual({...anchors[2]},untouchedBefore,'dragging one control point must not translate the rest of the board');
   assertSymmetric(anchors);
 
   const oldPortOut={x:anchors[5].ox,y:anchors[5].oy},portScreen=app.clientPoint(oldPortOut),portViewBox=app.svg.attributes.viewBox;
@@ -226,7 +228,7 @@ test('dragging an anchor or handle on either side mirrors the other side', () =>
 test('tail outgoing X handle is freely movable and its opposite handle stays mirrored', () => {
   const app = createHarness();
   const tail = app.model().anchors[3];
-  const initialOutX = tail.ox,screen=app.clientPoint(tail),scale=app.svg.screenTransform().scale;
+  const initialOutX = tail.ox,screen=app.clientPoint({x:tail.ox,y:tail.oy}),scale=app.svg.screenTransform().scale;
   const initialViewBox=app.svg.attributes.viewBox;
   app.listeners.pointerdown({
     target:{closest:()=>({dataset:{type:'out',i:'3'}})},
@@ -266,6 +268,20 @@ test('numeric tail outgoing X coordinate remains editable', () => {
   assert.ok(Math.abs(tail.ox-newOutX)<1e-8);
   assert.ok(Math.abs(tail.ix+tail.ox)<1e-8);
   assert.equal(app.validate().valid,true,app.validate().reason);
+});
+
+test('viewport dimensions remain stable during geometry edits and fit view is explicit', () => {
+  const app = createHarness();
+  const initial = app.svg.attributes.viewBox;
+  const model = app.model();
+  const start = app.clientPoint(model.anchors[1]);
+  app.listeners.pointerdown({target:{closest:()=>({dataset:{type:'anchor',i:'1'}})},clientX:start.x,clientY:start.y,pointerId:22});
+  app.listeners.pointermove({clientX:start.x+40,clientY:start.y+12});
+  assert.equal(app.svg.attributes.viewBox,initial,'editing geometry must not auto-zoom or auto-pan the canvas');
+  app.listeners.pointerup();
+  app.element('fitView').onclick();
+  const fitted = app.svg.attributes.viewBox;
+  assert.notEqual(fitted,initial,'Fit View explicitly recalculates the camera after geometry changes');
 });
 
 test('zoom buttons, fit view and blank-canvas panning update the viewport', () => {
