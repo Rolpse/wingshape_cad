@@ -14,6 +14,12 @@ button{background:#263b4b;border:1px solid #526a7a;color:#e8eef4;padding:8px 10p
 button:hover{background:#35556b}button:disabled{opacity:.4;cursor:not-allowed}
 .row{display:flex;gap:6px;flex-wrap:wrap}.notice{font-size:12px;color:#a8bac9;line-height:1.45;margin:2px 0}
 #status{font-size:12px;color:#d7e4ed;padding:8px;background:#0d151c;border:1px solid #334654;border-radius:5px}
+#integrity{font-size:12px;line-height:1.45;padding:8px;border:1px solid #526a7a;border-radius:5px}
+#integrity.valid{color:#9ed7b0;border-color:#37634c;background:#102018}
+#integrity.invalid{color:#ffb0a7;border-color:#7c3939;background:#241313}
+.dimension-line{stroke:#b8cbd8;stroke-width:3;fill:none;marker-start:url(#dimArrow);marker-end:url(#dimArrow)}
+.dimension-extension{stroke:#708b9d;stroke-width:2;stroke-dasharray:6 5}
+.dimension-label{fill:#d7e4ed;font-size:34px;text-anchor:middle;paint-order:stroke;stroke:#0d151c;stroke-width:7px;stroke-linejoin:round}
 #feedback{font-size:12px;line-height:1.45;color:#e8c98d;min-height:34px}
 .coord-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .coord-grid label{display:flex;flex-direction:column;align-items:stretch;gap:3px}
@@ -49,8 +55,9 @@ svg{width:100%;height:100%;touch-action:none;display:block}
 <div class="row"><button id="add">Punkt einfügen</button><button id="del">Punkt löschen</button></div>
 <div class="row"><button id="mode">Modus: Corner</button><button id="undo">Undo</button><button id="redo">Redo</button></div>
 <div class="row"><button id="reset">Reset</button><button id="export">JSON export</button><button id="import">JSON import</button><input id="file" type="file" accept=".json,application/json" hidden></div>
-<div id="status"></div><div id="feedback">Punkte und Griffe direkt in der Zeichnung ziehen.</div>
-<p class="notice"><b>Kontur:</b> Die gefüllte Fläche wird aus denselben Bézier-Segmenten wie die sichtbare Außenlinie aufgebaut. Die Kontur ist geschlossen; es gibt keinen doppelten Start-/Endpunkt.</p>
+<div id="status"></div><div id="integrity" class="valid">Geometrieprüfung läuft …</div><div id="feedback">Punkte und Griffe direkt in der Zeichnung ziehen.</div>
+<p class="notice"><b>Kontur:</b> Gefüllte Fläche und Außenlinie verwenden dieselbe geschlossene Bézier-Kontur. Maßlinien zeigen die berechneten Außenabmessungen aus den Kurvenextrema.</p>
+<p class="notice"><b>Geometrieprüfung:</b> Kontrolliert ungültige Koordinaten, zusammenfallende Anker und Selbstüberschneidungen. Bei ungültiger Kontur wird der JSON-Export gesperrt.</p>
 <p class="notice"><b>Einfügen:</b> Teilt das längste Kurvensegment exakt bei t = 0,5 (De-Casteljau). Die ursprüngliche Kurvenform bleibt erhalten.</p>
 <p class="notice"><b>Löschen:</b> Die zwei Nachbarsegmente werden zu einer Bézier-Kurve angepasst. Der Punkt wird nur entfernt, wenn die maximale Abweichung die eingestellte Toleranz nicht überschreitet.</p>
 <p class="notice"><b>Griffe:</b> Corner = frei, Smooth = tangential mit unabhängigen Längen, Symmetric = tangential und gleich lang. Längen-/Breitenänderungen skalieren alle Koordinaten und Griffe proportional.</p>
@@ -67,6 +74,7 @@ const lengthInput=document.getElementById('length');
 const widthInput=document.getElementById('width');
 const toleranceInput=document.getElementById('tolerance');
 const statusEl=document.getElementById('status');
+const integrityEl=document.getElementById('integrity');
 const feedbackEl=document.getElementById('feedback');
 const coordinateInputs={anchorX:document.getElementById('anchorX'),anchorY:document.getElementById('anchorY'),inX:document.getElementById('inX'),inY:document.getElementById('inY'),outX:document.getElementById('outX'),outY:document.getElementById('outY')};
 let viewport={x:0,y:0,zoom:1};
@@ -102,9 +110,86 @@ function pathData(){
  for(let i=0;i<a.length;i++){const b=a[(i+1)%a.length];d+=' C '+a[i].ox+' '+a[i].oy+', '+b.ix+' '+b.iy+', '+b.x+' '+b.y}
  return d+' Z';
 }
+function derivativeRoots(p0,p1,p2,p3){
+ const a=-p0+3*p1-3*p2+p3,b=2*(p0-2*p1+p2),c=p1-p0,roots=[];
+ if(Math.abs(a)<1e-12){if(Math.abs(b)>1e-12)roots.push(-c/b);return roots}
+ const disc=b*b-4*a*c;if(disc<0)return roots;
+ const root=Math.sqrt(Math.max(0,disc));roots.push((-b-root)/(2*a));if(root>1e-12)roots.push((-b+root)/(2*a));return roots;
+}
+function outlineBounds(){
+ const bounds={minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity};
+ const include=p=>{bounds.minX=Math.min(bounds.minX,p.x);bounds.maxX=Math.max(bounds.maxX,p.x);bounds.minY=Math.min(bounds.minY,p.y);bounds.maxY=Math.max(bounds.maxY,p.y)};
+ for(let i=0;i<model.anchors.length;i++){
+  const p=segmentPoints(model.anchors[i],model.anchors[(i+1)%model.anchors.length]);
+  [p[0],p[3]].forEach(include);
+  for(const axis of ['x','y']){
+   const ts=derivativeRoots(p[0][axis],p[1][axis],p[2][axis],p[3][axis]);
+   for(const t of ts)if(t>0&&t<1)include(bezier(p[0],p[1],p[2],p[3],t));
+  }
+ }
+ return bounds;
+}
+function orientation(a,b,c){return (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)}
+function onSegment(a,b,p,eps){
+ return p.x>=Math.min(a.x,b.x)-eps&&p.x<=Math.max(a.x,b.x)+eps&&p.y>=Math.min(a.y,b.y)-eps&&p.y<=Math.max(a.y,b.y)+eps;
+}
+function segmentsIntersect(a,b,c,d){
+ const scale=Math.max(1,Math.hypot(b.x-a.x,b.y-a.y),Math.hypot(d.x-c.x,d.y-c.y)),eps=1e-8*scale;
+ const o1=orientation(a,b,c),o2=orientation(a,b,d),o3=orientation(c,d,a),o4=orientation(c,d,b);
+ if(((o1>eps&&o2< -eps)||(o1< -eps&&o2>eps))&&((o3>eps&&o4< -eps)||(o3< -eps&&o4>eps)))return true;
+ if(Math.abs(o1)<=eps&&onSegment(a,b,c,eps))return true;
+ if(Math.abs(o2)<=eps&&onSegment(a,b,d,eps))return true;
+ if(Math.abs(o3)<=eps&&onSegment(c,d,a,eps))return true;
+ if(Math.abs(o4)<=eps&&onSegment(c,d,b,eps))return true;
+ return false;
+}
+function validateOutline(){
+ const a=model.anchors;
+ if(!Array.isArray(a)||a.length<3)return {valid:false,reason:'Mindestens drei Kontrollpunkte sind erforderlich.'};
+ for(let i=0;i<a.length;i++){
+  const p=a[i],values=[p.x,p.y,p.ix,p.iy,p.ox,p.oy];
+  if(!values.every(Number.isFinite))return {valid:false,reason:'Ungültige oder nicht endliche Koordinate bei '+p.id+'.'};
+  const q=a[(i+1)%a.length];
+  if(Math.hypot(q.x-p.x,q.y-p.y)<0.01)return {valid:false,reason:'Zwei benachbarte Anker liegen praktisch übereinander.'};
+ }
+ const points=[point(a[0].x,a[0].y)],steps=64;
+ for(let i=0;i<a.length;i++){
+  const p=segmentPoints(a[i],a[(i+1)%a.length]);
+  for(let k=1;k<=steps;k++)points.push(bezier(p[0],p[1],p[2],p[3],k/steps));
+ }
+ const edgeCount=points.length-1;
+ for(let i=0;i<edgeCount;i++){
+  for(let j=i+2;j<edgeCount;j++){
+   if(i===0&&j===edgeCount-1)continue;
+   if(segmentsIntersect(points[i],points[i+1],points[j],points[j+1])){
+    return {valid:false,reason:'Selbstüberschneidung zwischen Konturabschnitten '+i+' und '+j+'.'};
+   }
+  }
+ }
+ const bounds=outlineBounds();
+ if(![bounds.minX,bounds.maxX,bounds.minY,bounds.maxY].every(Number.isFinite))return {valid:false,reason:'Konturgrenzen konnten nicht berechnet werden.'};
+ if(bounds.maxX-bounds.minX<1||bounds.maxY-bounds.minY<1)return {valid:false,reason:'Kontur hat keine ausreichende Breite oder Länge.'};
+ return {valid:true,bounds:bounds,reason:''};
+}
+function dimensionMarkup(bounds,margin){
+ const xDim=bounds.minX-margin*.55,yDim=bounds.maxY+margin*.45;
+ const length=(bounds.maxY-bounds.minY).toFixed(1),width=(bounds.maxX-bounds.minX).toFixed(1);
+ const xMid=(bounds.minX+bounds.maxX)/2,yMid=(bounds.minY+bounds.maxY)/2;
+ return '<defs><marker id="dimArrow" viewBox="-4 -4 8 8" refX="0" refY="0" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M -3 -3 L 0 0 L -3 3" fill="none" stroke="#b8cbd8" stroke-width="1"/></marker></defs>'+
+ '<g class="dimensions">'+
+ '<line class="dimension-extension" x1="'+bounds.minX+'" y1="'+bounds.minY+'" x2="'+xDim+'" y2="'+bounds.minY+'"/><line class="dimension-extension" x1="'+bounds.minX+'" y1="'+bounds.maxY+'" x2="'+xDim+'" y2="'+bounds.maxY+'"/>'+
+ '<line class="dimension-line" x1="'+xDim+'" y1="'+bounds.minY+'" x2="'+xDim+'" y2="'+bounds.maxY+'"/>'+
+ '<text class="dimension-label" x="'+(xDim-margin*.15)+'" y="'+yMid+'" transform="rotate(-90 '+(xDim-margin*.15)+' '+yMid+')">'+length+' mm</text>'+
+ '<line class="dimension-extension" x1="'+bounds.minX+'" y1="'+bounds.maxY+'" x2="'+bounds.minX+'" y2="'+yDim+'"/><line class="dimension-extension" x1="'+bounds.maxX+'" y1="'+bounds.maxY+'" x2="'+bounds.maxX+'" y2="'+yDim+'"/>'+
+ '<line class="dimension-line" x1="'+bounds.minX+'" y1="'+yDim+'" x2="'+bounds.maxX+'" y2="'+yDim+'"/>'+
+ '<text class="dimension-label" x="'+xMid+'" y="'+(yDim+margin*.27)+'">'+width+' mm</text></g>';
+}
 function draw(){
- const margin=Math.max(60,Math.max(model.width_mm,model.length_mm)*0.06);
- const viewWidth=(model.width_mm+2*margin)/viewport.zoom,viewHeight=(model.length_mm+2*margin)/viewport.zoom;
+ const validation=validateOutline();
+ const bounds=validation.bounds||{minX:-model.width_mm/2,maxX:model.width_mm/2,minY:-model.length_mm/2,maxY:model.length_mm/2};
+ const actualWidth=bounds.maxX-bounds.minX,actualLength=bounds.maxY-bounds.minY;
+ const margin=Math.max(60,Math.max(actualWidth,actualLength)*0.06);
+ const viewWidth=(actualWidth+2*margin)/viewport.zoom,viewHeight=(actualLength+2*margin)/viewport.zoom;
  svg.setAttribute('viewBox',(viewport.x-viewWidth/2)+' '+(viewport.y-viewHeight/2)+' '+viewWidth+' '+viewHeight);
  const handles=[],nodes=[];
  model.anchors.forEach((a,i)=>{
@@ -114,8 +199,11 @@ function draw(){
   handles.push('<circle class="handle" data-type="out" data-i="'+i+'" cx="'+a.ox+'" cy="'+a.oy+'" r="18"/>');
   nodes.push('<circle class="anchor '+(i===selected?'selected':'')+'" data-type="anchor" data-i="'+i+'" cx="'+a.x+'" cy="'+a.y+'" r="25"/>');
  });
- const centerline='<line class="centerline" x1="0" y1="'+(-model.length_mm/2)+'" x2="0" y2="'+(model.length_mm/2)+'"/>';
- svg.innerHTML=centerline+'<path class="board-fill" d="'+pathData()+'"/>'+handles.join('')+nodes.join('');
+ const centerline='<line class="centerline" x1="0" y1="'+bounds.minY+'" x2="0" y2="'+bounds.maxY+'"/>';
+ svg.innerHTML=centerline+dimensionMarkup(bounds,margin)+'<path class="board-fill" d="'+pathData()+'"/>'+handles.join('')+nodes.join('');
+ integrityEl.className=validation.valid?'valid':'invalid';
+ integrityEl.textContent=validation.valid?'Kontur gültig · keine Selbstüberschneidung · Außenmaß '+actualLength.toFixed(1)+' × '+actualWidth.toFixed(1)+' mm':'Kontur ungültig · '+validation.reason;
+ document.getElementById('export').disabled=!validation.valid;
  const a=model.anchors[selected];
  statusEl.textContent=model.anchors.length+' Kontrollpunkte · ausgewählt: '+a.id+' · '+a.mode+' · '+model.length_mm+' × '+model.width_mm+' mm · Zoom '+Math.round(viewport.zoom*100)+'%';
  coordinateInputs.anchorX.value=a.x.toFixed(2);coordinateInputs.anchorY.value=a.y.toFixed(2);
@@ -278,6 +366,7 @@ document.getElementById('undo').onclick=()=>{if(!undoStack.length)return;redoSta
 document.getElementById('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(state());restoreState(redoStack.pop())};
 document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;viewport={x:0,y:0,zoom:1};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
 document.getElementById('export').onclick=()=>{
+ const validation=validateOutline();if(!validation.valid){feedbackEl.textContent='Export gesperrt: '+validation.reason;return}
  const data={document_type:'surfwing.outline',schema_version:'0.2.0',name:model.name,units:'mm',closed:true,length_mm:model.length_mm,width_mm:model.width_mm,anchors:model.anchors.map(a=>({id:a.id,position:[a.x,a.y],incoming_handle:[a.ix,a.iy],outgoing_handle:[a.ox,a.oy],continuity:a.mode}))};
  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
  link.href=url;link.download='surfwing-outline-mm.json';link.click();URL.revokeObjectURL(url);
