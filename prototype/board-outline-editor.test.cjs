@@ -179,6 +179,32 @@ test('numeric coordinate entry moves the anchor and both handles in millimetres'
   assertSymmetric(app.model().anchors);
 });
 
+test('dragging an anchor or handle on either side mirrors the other side', () => {
+  const app = createHarness();
+  const anchors = app.model().anchors;
+  const before = JSON.parse(JSON.stringify(anchors));
+  app.listeners.pointerdown({
+    target:{closest:()=>({dataset:{type:'anchor',i:'1'}})},
+    clientX:before[1].x, clientY:before[1].y, pointerId:1
+  });
+  app.listeners.pointermove({clientX:before[1].x+24,clientY:before[1].y+18});
+  app.listeners.pointerup();
+  assert.ok(Math.abs(anchors[1].x-(before[1].x+24))<1e-8);
+  assert.ok(Math.abs(anchors[1].y-(before[1].y+18))<1e-8);
+  assertSymmetric(anchors);
+
+  const oldPortOut={x:anchors[5].ox,y:anchors[5].oy};
+  app.listeners.pointerdown({
+    target:{closest:()=>({dataset:{type:'out',i:'5'}})},
+    clientX:oldPortOut.x, clientY:oldPortOut.y, pointerId:2
+  });
+  app.listeners.pointermove({clientX:oldPortOut.x-13,clientY:oldPortOut.y+9});
+  app.listeners.pointerup();
+  assertSymmetric(anchors);
+  assert.equal(anchors[1].ix,-anchors[5].ox);
+  assert.equal(anchors[1].iy,anchors[5].oy);
+});
+
 test('zoom buttons, fit view and blank-canvas panning update the viewport', () => {
   const app = createHarness();
   const initial = app.svg.attributes.viewBox.split(' ').map(Number);
