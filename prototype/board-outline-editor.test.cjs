@@ -85,7 +85,7 @@ test('deleting the inserted point respects strict tolerance and undo/redo', () =
   app.element('del').onclick();
   assert.equal(app.model().anchors.length, 6);
   const message = app.element('feedback').textContent;
-  const bound = Number(message.match(/Obergrenze: ([0-9.]+) mm/)[1]);
+  const bound = Number(message.match(/Abweichungsobergrenze: ([0-9.]+) mm/)[1]);
   assert.ok(bound <= 0.1, message);
   app.element('undo').onclick();
   assert.equal(app.model().anchors.length, 7);
