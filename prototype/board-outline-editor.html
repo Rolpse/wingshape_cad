@@ -159,13 +159,14 @@ document.getElementById('add').onclick=()=>{
  const inserted=splitSegmentAtHalf(model.anchors[best],model.anchors[next]);
  model.anchors.splice(best+1,0,inserted);selected=best+1;feedbackEl.textContent='Kontrollpunkt exakt bei t = 0,5 eingefügt; beide Teilkurven bilden zusammen dieselbe ursprüngliche Bézier-Kurve.';draw();
 };
-function fitMergedCurve(prev,removed,next){
+function controlSpeedBound(p){return 3*Math.max(Math.hypot(p[1].x-p[0].x,p[1].y-p[0].y),Math.hypot(p[2].x-p[1].x,p[2].y-p[1].y),Math.hypot(p[3].x-p[2].x,p[3].y-p[2].y))}
+function fitMergedCurve(prev,removed,next,tolerance){
  const p0=point(prev.x,prev.y),p3=point(next.x,next.y);
  const first=segmentPoints(prev,removed),second=segmentPoints(removed,next);
  let saa=0,sab=0,sbb=0,sax=0,sbx=0,say=0,sby=0;
- const samples=160;
- for(let k=1;k<samples;k++){
-  const u=k/samples,target=u<.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
+ const fitSamples=160;
+ for(let k=1;k<fitSamples;k++){
+  const u=k/fitSamples,target=u<.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
   const v=1-u,A=3*v*v*u,B=3*v*u*u;
   const base=point(v*v*v*p0.x+u*u*u*p3.x,v*v*v*p0.y+u*u*u*p3.y);
   const rx=target.x-base.x,ry=target.y-base.y;
@@ -175,23 +176,32 @@ function fitMergedCurve(prev,removed,next){
  if(Math.abs(det)<1e-12)return null;
  const c1=point((sax*sbb-sbx*sab)/det,(say*sbb-sby*sab)/det);
  const c2=point((sbx*saa-sax*sab)/det,(sby*saa-say*sab)/det);
- let max=0,sum=0,count=201;
- for(let k=0;k<count;k++){
-  const u=k/(count-1),target=u<=.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
+ const merged=[p0,c1,c2,p3];
+ // Bound the deviation between samples using a global derivative (Lipschitz) bound.
+ // The two old segments run over half the parameter interval, hence the factor 2.
+ const oldSpeed=2*Math.max(controlSpeedBound(first),controlSpeedBound(second));
+ const newSpeed=controlSpeedBound(merged);
+ const lipschitz=oldSpeed+newSpeed;
+ const requested=Math.max(Number(tolerance)||1,0.001);
+ const count=Math.min(100000,Math.max(4096,Math.ceil(lipschitz/(2*requested*0.1))));
+ let maxSampled=0,sum=0;
+ for(let k=0;k<=count;k++){
+  const u=k/count,target=u<=.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
   const fitted=bezier(p0,c1,c2,p3,u),err=Math.hypot(target.x-fitted.x,target.y-fitted.y);
-  max=Math.max(max,err);sum+=err*err;
+  maxSampled=Math.max(maxSampled,err);sum+=err*err;
  }
- return {c1:c1,c2:c2,max:max,rms:Math.sqrt(sum/count)};
+ const upperBound=maxSampled+lipschitz/(2*count);
+ return {c1:c1,c2:c2,max:maxSampled,upperBound:upperBound,rms:Math.sqrt(sum/(count+1)),samples:count+1};
 }
 document.getElementById('del').onclick=()=>{
  if(model.anchors.length<=3){feedbackEl.textContent='Mindestens drei Kontrollpunkte müssen erhalten bleiben.';return}
  const i=selected,n=model.anchors.length,prev=model.anchors[(i+n-1)%n],removed=model.anchors[i],next=model.anchors[(i+1)%n];
- const fit=fitMergedCurve(prev,removed,next),tol=Number(toleranceInput.value);
+ const tol=Number(toleranceInput.value),fit=fitMergedCurve(prev,removed,next,tol);
  if(!fit){feedbackEl.textContent='Löschen abgebrochen: Kurvenanpassung numerisch nicht stabil.';return}
- if(fit.max>tol+1e-8){feedbackEl.textContent='Nicht gelöscht: maximale Abweichung '+fit.max.toFixed(2)+' mm (RMS '+fit.rms.toFixed(2)+' mm) liegt über der Toleranz von '+tol.toFixed(2)+' mm. Toleranz erhöhen oder einen anderen Punkt wählen.';return}
+ if(fit.upperBound>tol+1e-8){feedbackEl.textContent='Nicht gelöscht: konservative Abweichungsobergrenze '+fit.upperBound.toFixed(3)+' mm (gemessener Maximalwert '+fit.max.toFixed(3)+' mm) liegt über der Toleranz von '+tol.toFixed(2)+' mm. Toleranz erhöhen oder einen anderen Punkt wählen.';return}
  pushUndo();prev.ox=fit.c1.x;prev.oy=fit.c1.y;next.ix=fit.c2.x;next.iy=fit.c2.y;
  model.anchors.splice(i,1);selected=i===0?model.anchors.length-1:i-1;
- feedbackEl.textContent='Punkt gelöscht. Anpassungsfehler: max. '+fit.max.toFixed(3)+' mm, RMS '+fit.rms.toFixed(3)+' mm (Grenze '+tol.toFixed(2)+' mm).';draw();
+ feedbackEl.textContent='Punkt gelöscht. Konservative Abweichungsobergrenze: '+fit.upperBound.toFixed(3)+' mm; RMS: '+fit.rms.toFixed(3)+' mm (Grenze '+tol.toFixed(2)+' mm).';draw();
 };
 document.getElementById('mode').onclick=()=>{
  pushUndo();const a=model.anchors[selected],next=a.mode==='corner'?'smooth':a.mode==='smooth'?'symmetric':'corner';setMode(a,next);
