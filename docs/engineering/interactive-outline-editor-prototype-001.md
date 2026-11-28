@@ -15,6 +15,8 @@ Open `prototype/board-outline-editor.html` in a modern browser. It is a standalo
 - Insertion uses an exact De Casteljau split at t=0.5 on the longest sampled-arc-length segment. This preserves that cubic segment up to floating-point precision.
 - Deletion fits the two neighbouring cubic segments to one replacement cubic by least squares. The editor then calculates a conservative deviation upper bound using a global derivative/Lipschitz bound and an adaptive dense sample grid. The point is removed only when that upper bound is at or below the user-selected tolerance.
 - If an insertion or deletion changes a neighbouring handle pair so that its stored Smooth/Symmetric mode is no longer true, that neighbour is explicitly changed to Corner. Geometry is not silently altered merely to retain an incorrect mode label.
+- Numeric entry of anchor position and both handle coordinates is available in millimetres. If a numeric edit invalidates Smooth/Symmetric constraints, the mode is changed to Corner.
+- Viewport navigation supports wheel zoom around the cursor, zoom buttons, Fit View, blank-canvas drag pan, and keyboard + / − / 0 shortcuts.
 - Undo/redo, JSON import/export (mm), and start-geometry reset are available.
 
 ## Automated regression tests
@@ -25,7 +27,7 @@ Run:
 node --test prototype/board-outline-editor.test.cjs
 ```
 
-The Python test workflow also runs these tests using Node.js 24. The regression tests cover script parsing, the closed Bézier fill path, exact insertion preservation, tolerance-accepted and tolerance-rejected deletion, undo/redo, mm scaling and continuity-mode transitions. These tests use a lightweight DOM stub; they do not replace manual browser testing.
+The Python test workflow also runs these tests using Node.js 24. The eight regression tests cover script parsing, the closed Bézier fill path, exact insertion preservation, tolerance-accepted and tolerance-rejected deletion, undo/redo, mm scaling, continuity-mode transitions, numeric coordinate entry and viewport navigation. These tests use a lightweight DOM stub; they do not replace manual browser testing.
 
 ## Current limitations
 
@@ -39,7 +41,7 @@ The Python test workflow also runs these tests using Node.js 24. The regression 
 
 ## Next implementation milestones
 
-1. Add zoom/pan, keyboard coordinate entry and explicit width/length measurement annotations.
+1. Add explicit width/length measurement annotations and stronger self-intersection / fold checks.
 2. Connect outline geometry to the Shape Document schema and board station model.
 3. Add editable transverse sections (deck, bottom, rail and thickness).
 4. Build the first geometry-derived 3D preview and connect it to the existing loft prototype.
