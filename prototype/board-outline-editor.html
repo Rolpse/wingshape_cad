@@ -79,7 +79,7 @@ const statusEl=document.getElementById('status');
 const integrityEl=document.getElementById('integrity');
 const feedbackEl=document.getElementById('feedback');
 const coordinateInputs={anchorX:document.getElementById('anchorX'),anchorY:document.getElementById('anchorY'),inX:document.getElementById('inX'),inY:document.getElementById('inY'),outX:document.getElementById('outX'),outY:document.getElementById('outY')};
-let viewport={x:0,y:0,zoom:1};
+let viewport={x:0,y:0,zoom:1,baseWidth:null,baseHeight:null};
 let idCounter=7;
 function fromOld(px,py,w,l){return {x:(px-450)*(w/420)*0.89340860393287,y:(py-297.5)*(l/465)}}
 function anchor(id,pos,inP,outP,mode){return {id:id,x:pos.x,y:pos.y,ix:inP.x,iy:inP.y,ox:outP.x,oy:outP.y,mode:mode}}
@@ -216,7 +216,13 @@ function draw(){
  const bounds=validation.bounds||{minX:-model.width_mm/2,maxX:model.width_mm/2,minY:-model.length_mm/2,maxY:model.length_mm/2};
  const actualWidth=bounds.maxX-bounds.minX,actualLength=bounds.maxY-bounds.minY;
  const margin=Math.max(60,Math.max(actualWidth,actualLength)*0.06);
- const viewWidth=(actualWidth+2*margin)/viewport.zoom,viewHeight=(actualLength+2*margin)/viewport.zoom;
+ // The camera is independent of the live outline bounds. Recalculating the
+ // viewBox on every pointermove makes the SVG transform move beneath the
+ // pointer, which produces apparent model drift while editing.
+ if(!Number.isFinite(viewport.baseWidth)||!Number.isFinite(viewport.baseHeight)){
+  viewport.baseWidth=actualWidth+2*margin;viewport.baseHeight=actualLength+2*margin;
+ }
+ const viewWidth=viewport.baseWidth/viewport.zoom,viewHeight=viewport.baseHeight/viewport.zoom;
  svg.setAttribute('viewBox',(viewport.x-viewWidth/2)+' '+(viewport.y-viewHeight/2)+' '+viewWidth+' '+viewHeight);
  const handles=[],nodes=[];
  model.anchors.forEach((a,i)=>{
@@ -322,7 +328,12 @@ svg.addEventListener('wheel',evt=>{
 function zoomBy(factor){viewport.zoom=Math.max(.25,Math.min(20,viewport.zoom*factor));draw()}
 document.getElementById('zoomIn').onclick=()=>zoomBy(1.25);
 document.getElementById('zoomOut').onclick=()=>zoomBy(.8);
-document.getElementById('fitView').onclick=()=>{viewport={x:0,y:0,zoom:1};draw()};
+function fitView(){
+ const validation=validateOutline(),bounds=validation.bounds||{minX:-model.width_mm/2,maxX:model.width_mm/2,minY:-model.length_mm/2,maxY:model.length_mm/2};
+ const width=bounds.maxX-bounds.minX,height=bounds.maxY-bounds.minY,margin=Math.max(60,Math.max(width,height)*0.06);
+ viewport={x:(bounds.minX+bounds.maxX)/2,y:(bounds.minY+bounds.maxY)/2,zoom:1,baseWidth:width+2*margin,baseHeight:height+2*margin};draw();
+}
+document.getElementById('fitView').onclick=fitView;
 document.getElementById('applyCoords').onclick=()=>{
  const ids=['anchorX','anchorY','inX','inY','outX','outY'],values=ids.map(id=>Number(coordinateInputs[id].value));
  if(!values.every(Number.isFinite)){feedbackEl.textContent='Alle sechs Koordinaten müssen gültige Zahlen in mm sein.';return}
@@ -333,7 +344,7 @@ document.getElementById('applyCoords').onclick=()=>{
  syncSymmetryAt(selected,isCenter&&inChanged&&!outChanged?'in':'out');
  feedbackEl.textContent='Koordinaten übernommen. Die Gegenseite wurde automatisch gespiegelt.'+(isCenter?' Der Anker bleibt auf der Mittellinie x = 0 mm.':'')+(oldMode!==a.mode?' Der Kontinuitätsmodus wurde auf Corner gesetzt, weil die Griffe nicht mehr zur bisherigen Bedingung passen.':'');draw();
 };
-svg.addEventListener('keydown',evt=>{if(evt.key==='+'||evt.key==='='){zoomBy(1.25);evt.preventDefault()}else if(evt.key==='-'){zoomBy(.8);evt.preventDefault()}else if(evt.key==='0'){viewport={x:0,y:0,zoom:1};draw();evt.preventDefault()}});
+svg.addEventListener('keydown',evt=>{if(evt.key==='+'||evt.key==='='){zoomBy(1.25);evt.preventDefault()}else if(evt.key==='-'){zoomBy(.8);evt.preventDefault()}else if(evt.key==='0'){fitView();evt.preventDefault()}});
 function splitSegmentAtHalf(a,b){
  const p=segmentPoints(a,b),q0=lerp(p[0],p[1],.5),q1=lerp(p[1],p[2],.5),q2=lerp(p[2],p[3],.5);
  const r0=lerp(q0,q1,.5),r1=lerp(q1,q2,.5),s=lerp(r0,r1,.5);
@@ -407,13 +418,15 @@ function changeDimensions(){
  pushUndo();const sx=newW/model.width_mm,sy=newL/model.length_mm;
  model.anchors.forEach(a=>{a.x*=sx;a.ox*=sx;a.ix*=sx;a.y*=sy;a.oy*=sy;a.iy*=sy});
  viewport.x*=sx;viewport.y*=sy;
+ if(Number.isFinite(viewport.baseWidth))viewport.baseWidth*=sx;
+ if(Number.isFinite(viewport.baseHeight))viewport.baseHeight*=sy;
  model.width_mm=newW;model.length_mm=newL;lengthInput.value=newL;widthInput.value=newW;
  feedbackEl.textContent='Geometrie proportional skaliert; alle Anker und Griffe bleiben in mm definiert.';draw();
 }
 lengthInput.onchange=changeDimensions;widthInput.onchange=changeDimensions;
 document.getElementById('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(state());restoreState(undoStack.pop())};
 document.getElementById('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(state());restoreState(redoStack.pop())};
-document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;viewport={x:0,y:0,zoom:1};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
+document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;viewport={x:0,y:0,zoom:1,baseWidth:null,baseHeight:null};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
 document.getElementById('export').onclick=()=>{
  const validation=validateOutline();if(!validation.valid){feedbackEl.textContent='Export gesperrt: '+validation.reason;return}
  const data={document_type:'surfwing.outline',schema_version:'0.2.0',name:model.name,units:'mm',closed:true,length_mm:model.length_mm,width_mm:model.width_mm,anchors:model.anchors.map(a=>({id:a.id,position:[a.x,a.y],incoming_handle:[a.ix,a.iy],outgoing_handle:[a.ox,a.oy],continuity:a.mode}))};
@@ -433,7 +446,7 @@ document.getElementById('file').onchange=evt=>{
     return anchor(String(a.id||('import-'+i)),point(a.position[0],a.position[1]),point(a.incoming_handle[0],a.incoming_handle[1]),point(a.outgoing_handle[0],a.outgoing_handle[1]),['corner','smooth','symmetric'].includes(a.continuity)?a.continuity:'corner');
    });
    pushUndo();model={name:data.name||'Imported board',units:'mm',closed:true,length_mm:Number(data.length_mm)||1600,width_mm:Number(data.width_mm)||520,anchors:imported};
-   enforceModelSymmetry(model);selected=0;viewport={x:0,y:0,zoom:1};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Kontur aus JSON geladen und an der Mittellinie symmetrisch ausgerichtet.';draw();
+   enforceModelSymmetry(model);selected=0;viewport={x:0,y:0,zoom:1,baseWidth:null,baseHeight:null};lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Kontur aus JSON geladen und an der Mittellinie symmetrisch ausgerichtet.';draw();
   }catch(err){feedbackEl.textContent='Importfehler: '+err.message}
  };
  reader.readAsText(file);evt.target.value='';
