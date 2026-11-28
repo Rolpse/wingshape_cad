@@ -79,7 +79,7 @@ const feedbackEl=document.getElementById('feedback');
 const coordinateInputs={anchorX:document.getElementById('anchorX'),anchorY:document.getElementById('anchorY'),inX:document.getElementById('inX'),inY:document.getElementById('inY'),outX:document.getElementById('outX'),outY:document.getElementById('outY')};
 let viewport={x:0,y:0,zoom:1};
 let idCounter=7;
-function fromOld(px,py,w,l){return {x:(px-450)*(w/420),y:(py-297.5)*(l/465)}}
+function fromOld(px,py,w,l){return {x:(px-450)*(w/420)*0.89340860393287,y:(py-297.5)*(l/465)}}
 function anchor(id,pos,inP,outP,mode){return {id:id,x:pos.x,y:pos.y,ix:inP.x,iy:inP.y,ox:outP.x,oy:outP.y,mode:mode}}
 function makeInitialModel(){
  const w=520,l=1600,pt=(x,y)=>fromOld(x,y,w,l);
