@@ -114,14 +114,32 @@ function svgCoordinates(evt){
  const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;
  const q=p.matrixTransform(svg.getScreenCTM().inverse());return point(q.x,q.y);
 }
+function continuityValid(a){
+ const ix=a.ix-a.x,iy=a.iy-a.y,ox=a.ox-a.x,oy=a.oy-a.y;
+ const li=Math.hypot(ix,iy),lo=Math.hypot(ox,oy);
+ if(li<1e-8||lo<1e-8)return false;
+ if(Math.abs(ix*oy-iy*ox)>1e-6*li*lo)return false;
+ if(ix*ox+iy*oy>=0)return false;
+ if(a.mode==='symmetric'&&Math.abs(li-lo)>1e-6*Math.max(li,lo))return false;
+ return true;
+}
+function downgradeIfBroken(a){if(a.mode!=='corner'&&!continuityValid(a))a.mode='corner'}
 function setMode(a,newMode){
- a.mode=newMode;
- if(newMode==='smooth'||newMode==='symmetric'){
-  let dx=a.ox-a.x,dy=a.oy-a.y,l=Math.hypot(dx,dy);
-  if(l<1e-9){dx=1;dy=0;l=1}
-  const opposite=newMode==='symmetric'?l:Math.hypot(a.ix-a.x,a.iy-a.y);
-  a.ix=a.x-dx/l*opposite;a.iy=a.y-dy/l*opposite;
+ if(newMode==='corner'){a.mode='corner';return}
+ let dx=a.ox-a.x,dy=a.oy-a.y,lo=Math.hypot(dx,dy);
+ const ix=a.ix-a.x,iy=a.iy-a.y,li=Math.hypot(ix,iy);
+ if(lo<1e-9){
+  if(li>1e-9){dx=-ix;dy=-iy;lo=li}
+  else{
+   const i=model.anchors.indexOf(a),prev=model.anchors[(i+model.anchors.length-1)%model.anchors.length],next=model.anchors[(i+1)%model.anchors.length];
+   dx=(prev.x+next.x)/2-a.x;dy=(prev.y+next.y)/2-a.y;lo=Math.hypot(dx,dy)||1;
+  }
  }
+ const ux=dx/lo,uy=dy/lo,outLength=lo<1e-9?Math.min(80,model.length_mm*.05):Math.min(lo,80);
+ const inLength=newMode==='symmetric'?outLength:(li>1e-9?li:outLength);
+ a.ox=a.x+ux*outLength;a.oy=a.y+uy*outLength;
+ a.ix=a.x-ux*inLength;a.iy=a.y-uy*inLength;
+ a.mode=newMode;
 }
 svg.addEventListener('pointerdown',evt=>{
  const target=evt.target.closest('[data-type]');if(!target)return;
