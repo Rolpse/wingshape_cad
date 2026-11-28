@@ -222,6 +222,14 @@ test('tail outgoing X handle is freely movable and its opposite handle stays mir
   assert.equal(app.validate().valid,true,app.validate().reason);
 });
 
+test('control points and Bézier handle markers are small while drag hit areas stay large', () => {
+  const app = createHarness();
+  assert.match(app.svg.innerHTML, /class="anchor-hit"[^>]*r="25"/);
+  assert.match(app.svg.innerHTML, /class="anchor(?: selected)?"[^>]*r="7"/);
+  assert.match(app.svg.innerHTML, /class="handle-hit" data-type="out"[^>]*r="18"/);
+  assert.match(app.svg.innerHTML, /class="handle"[^>]*r="5"/);
+});
+
 test('bottom-left orientation indicator shows positive X and Y axes', () => {
   const app = createHarness();
   assert.match(app.svg.innerHTML,/class="axis-indicator"/);
