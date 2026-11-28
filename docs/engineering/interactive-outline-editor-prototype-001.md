@@ -9,7 +9,7 @@ Open `prototype/board-outline-editor.html` in a modern browser. It is a standalo
 - Move an anchor by dragging its white/orange marker.
 - Drag the two gold handles to control each Bézier anchor's incoming/outgoing tangent.
 - Cycle the selected anchor through Corner → Smooth → Symmetric. Smooth handles remain collinear; Symmetric keeps the two handle lengths equal.
-- Add an approximate anchor or delete an interior anchor.
+- Insert an anchor by exact De Casteljau split at t=0.5 or delete an interior anchor.
 - Undo/redo, import/export JSON, and adjust nominal board length/width.
 
 ## Limitations / known defects to address
@@ -25,10 +25,9 @@ Open `prototype/board-outline-editor.html` in a modern browser. It is a standalo
 
 ## Next implementation milestones
 
-1. Correct closed outline representation and segment joining.
-2. Implement exact De Casteljau split for adding anchors, with tests.
-3. Add symmetric continuity control and robust handle normalization.
-4. Add dimension-based coordinate mapping (mm) and viewport zoom/pan.
-5. Add section editing and board station model adapter.
-6. Connect the editor to the shape document and geometry/loft pipeline.
-7. Add automated browser acceptance tests.
+1. Fix closed outline fill so it follows the actual curve geometry.
+2. Add tolerance-bounded anchor deletion and tests for exact split preservation.
+3. Add dimension-based coordinate mapping (mm) and viewport zoom/pan.
+4. Add section editing and board station model adapter.
+5. Connect the editor to the shape document and geometry/loft pipeline.
+6. Add automated browser acceptance tests.
