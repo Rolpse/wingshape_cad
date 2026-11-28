@@ -1,41 +1,238 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SurfWing CAD Outline Editor Prototype</title>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SurfWing CAD – Board Outline Editor</title>
 <style>
-:root{color-scheme:dark;font:15px system-ui,Segoe UI,sans-serif;background:#101820;color:#e8eef4}body{margin:0}header{padding:14px 20px;background:#182632;border-bottom:1px solid #334654}h1{font-size:20px;margin:0 0 4px}small,.notice{color:#a8bac9}main{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 70px)}aside{padding:16px;background:#15212b;border-right:1px solid #334654;display:flex;flex-direction:column;gap:12px}label{display:flex;justify-content:space-between;align-items:center;gap:8px}input[type=number]{width:92px;background:#0d151c;border:1px solid #405565;color:white;padding:7px;border-radius:5px}button{background:#263b4b;border:1px solid #526a7a;color:#e8eef4;padding:8px 10px;border-radius:6px;cursor:pointer}button:hover{background:#35556b}button:disabled{opacity:.4;cursor:not-allowed}.row{display:flex;gap:6px;flex-wrap:wrap}.notice{font-size:12px;line-height:1.45}.workspace{padding:14px;display:grid;grid-template-rows:minmax(350px,1fr) 220px;gap:12px;min-height:70vh}.panel{background:#0d151c;border:1px solid #334654;border-radius:8px;overflow:hidden;position:relative}.panel-title{position:absolute;top:10px;left:12px;z-index:2;color:#b8cbd8;font-size:12px}svg{width:100%;height:100%;touch-action:none}#outline{fill:#4a839f;fill-opacity:.25;stroke:#82c5e5;stroke-width:2}.curve{fill:none;stroke:#82c5e5;stroke-width:3}.handle-line{stroke:#d9ad64;stroke-width:1;stroke-dasharray:4 4}.handle{fill:#e2b45f;stroke:#0d151c;stroke-width:1;cursor:grab}.anchor{fill:#f4f7fa;stroke:#163347;stroke-width:2;cursor:move}.anchor.selected{fill:#ff9b54;stroke:white}#sectionSvg .deck{stroke:#a8d7f0;fill:none;stroke-width:2}#sectionSvg .bottom{stroke:#5db9a0;fill:none;stroke-width:2}@media(max-width:850px){main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #334654}.workspace{grid-template-rows:55vh 200px}}
-</style></head><body><header><h1>SurfWing CAD – Board Outline Editor</h1><small>Interaktiver Prototyp · Bézier-Anker mit zwei Griffpunkten · Browser</small></header>
-<main><aside><label>Board Länge (mm) <input id="length" type="number" value="1600" min="500" max="4000" step="10"></label><label>Max. Breite (mm) <input id="width" type="number" value="520" min="100" max="1200" step="5"></label>
-<div class="row"><button id="add">Anker hinzufügen</button><button id="del">Anker löschen</button></div><div class="row"><button id="corner">Modus: Smooth</button><button id="undo">Undo</button><button id="redo">Redo</button></div>
-<div class="row"><button id="reset">Reset</button><button id="export">JSON exportieren</button><button id="import">JSON laden</button><input id="file" type="file" accept=".json,application/json" hidden></div><div id="status"></div>
-<p class="notice">Anker verschieben: weiß/orange Punkt. Griffpunkte: goldene Kreise. Corner erlaubt unabhängige Griffe; Smooth richtet Griffe tangential aus; Symmetric hält ihre Längen gleich. Anker hinzufügen setzt einen neuen Punkt in der Mitte des längsten Segments (Approximation). JSON Export speichert Kurvenstruktur.</p><p class="notice">Prototyp: noch kein CAD-Kernel, keine Deck-/Bottom-Flächen, keine STEP/STL-Generierung und keine CNC-Ausgabe.</p></aside>
-<section class="workspace"><div class="panel"><div class="panel-title">Draufsicht · Outline / Griffpunkte</div><svg id="svg" viewBox="0 0 900 600"></svg></div><div class="panel"><div class="panel-title">Querschnitt-Skizze (schematisch)</div><svg id="sectionSvg" viewBox="0 0 900 220"><path class="deck" d="M170 100 Q450 70 730 100"/><path class="bottom" d="M170 125 Q450 150 730 125"/><line x1="170" y1="100" x2="170" y2="125" stroke="#71899b"/><line x1="730" y1="100" x2="730" y2="125" stroke="#71899b"/><text x="450" y="185" text-anchor="middle" fill="#9bb0c0">Nur Platzhalter – Section editor folgt</text></svg></div></section></main>
+:root{color-scheme:dark;font:15px system-ui,Segoe UI,sans-serif;background:#101820;color:#e8eef4}
+*{box-sizing:border-box}body{margin:0}header{padding:14px 20px;background:#182632;border-bottom:1px solid #334654}h1{font-size:20px;margin:0 0 4px}small,.muted{color:#a8bac9}
+main{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100vh - 70px)}
+aside{padding:16px;background:#15212b;border-right:1px solid #334654;display:flex;flex-direction:column;gap:12px}
+label{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+input[type=number]{width:105px;background:#0d151c;border:1px solid #405565;color:white;padding:7px;border-radius:5px}
+button{background:#263b4b;border:1px solid #526a7a;color:#e8eef4;padding:8px 10px;border-radius:6px;cursor:pointer}
+button:hover{background:#35556b}button:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:6px;flex-wrap:wrap}.notice{font-size:12px;color:#a8bac9;line-height:1.45;margin:2px 0}
+#status{font-size:12px;color:#d7e4ed;padding:8px;background:#0d151c;border:1px solid #334654;border-radius:5px}
+#feedback{font-size:12px;line-height:1.45;color:#e8c98d;min-height:34px}
+.workspace{padding:14px;display:grid;grid-template-rows:minmax(430px,1fr) 150px;gap:12px;min-height:78vh}
+.panel{background:#0d151c;border:1px solid #334654;border-radius:8px;overflow:hidden;position:relative}
+.panel-title{position:absolute;top:10px;left:12px;z-index:2;color:#b8cbd8;font-size:12px;pointer-events:none}
+svg{width:100%;height:100%;touch-action:none;display:block}
+.board-fill{fill:#4a839f;fill-opacity:.22;stroke:#82c5e5;stroke-width:2.5;stroke-linejoin:round}
+.centerline{stroke:#587183;stroke-width:1.5;stroke-dasharray:12 12;pointer-events:none}
+.handle-line{stroke:#d9ad64;stroke-width:2;stroke-dasharray:8 7;opacity:.8}
+.handle{fill:#e2b45f;stroke:#0d151c;stroke-width:2;cursor:grab}
+.anchor{fill:#f4f7fa;stroke:#163347;stroke-width:3;cursor:move}
+.anchor.selected{fill:#ff9b54;stroke:white}
+#sectionSvg .deck{stroke:#a8d7f0;fill:none;stroke-width:3}#sectionSvg .bottom{stroke:#5db9a0;fill:none;stroke-width:3}
+@media(max-width:850px){main{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid #334654}.workspace{grid-template-rows:65vh 150px;min-height:auto}}
+</style>
+</head>
+<body>
+<header><h1>SurfWing CAD – Board Outline Editor</h1><small>Geometrie in Millimetern · geschlossene Bézier-Kontur · Kontrollpunkte mit zwei Griffen</small></header>
+<main>
+<aside>
+<label>Boardlänge (mm) <input id="length" type="number" value="1600" min="500" max="4000" step="10"></label>
+<label>Max. Breite (mm) <input id="width" type="number" value="520" min="100" max="1200" step="5"></label>
+<label>Lösch-Toleranz (mm) <input id="tolerance" type="number" value="1.0" min="0.1" max="20" step="0.1"></label>
+<div class="row"><button id="add">Punkt einfügen</button><button id="del">Punkt löschen</button></div>
+<div class="row"><button id="mode">Modus: Corner</button><button id="undo">Undo</button><button id="redo">Redo</button></div>
+<div class="row"><button id="reset">Reset</button><button id="export">JSON export</button><button id="import">JSON import</button><input id="file" type="file" accept=".json,application/json" hidden></div>
+<div id="status"></div><div id="feedback">Punkte und Griffe direkt in der Zeichnung ziehen.</div>
+<p class="notice"><b>Kontur:</b> Die gefüllte Fläche wird aus denselben Bézier-Segmenten wie die sichtbare Außenlinie aufgebaut. Die Kontur ist geschlossen; es gibt keinen doppelten Start-/Endpunkt.</p>
+<p class="notice"><b>Einfügen:</b> Teilt das längste Kurvensegment exakt bei t = 0,5 (De-Casteljau). Die ursprüngliche Kurvenform bleibt erhalten.</p>
+<p class="notice"><b>Löschen:</b> Die zwei Nachbarsegmente werden zu einer Bézier-Kurve angepasst. Der Punkt wird nur entfernt, wenn die maximale Abweichung die eingestellte Toleranz nicht überschreitet.</p>
+<p class="notice"><b>Griffe:</b> Corner = frei, Smooth = tangential mit unabhängigen Längen, Symmetric = tangential und gleich lang. Längen-/Breitenänderungen skalieren alle Koordinaten und Griffe proportional.</p>
+<p class="notice">Der Querschnitt ist weiterhin nur ein Platzhalter. Noch keine Deck-/Bottom-Flächen, 3D-Loft, CAD-Kernel, STEP/STL oder CNC-Ausgabe.</p>
+</aside>
+<section class="workspace">
+<div class="panel"><div class="panel-title">Draufsicht · Maße und Griffe in mm</div><svg id="svg" viewBox="-350 -850 700 1700" preserveAspectRatio="xMidYMid meet" aria-label="Board outline editor"></svg></div>
+<div class="panel"><div class="panel-title">Querschnitt-Skizze · Platzhalter</div><svg id="sectionSvg" viewBox="0 0 900 220"><path class="deck" d="M170 100 Q450 70 730 100"/><path class="bottom" d="M170 125 Q450 150 730 125"/><line x1="170" y1="100" x2="170" y2="125" stroke="#71899b"/><line x1="730" y1="100" x2="730" y2="125" stroke="#71899b"/><text x="450" y="185" text-anchor="middle" fill="#9bb0c0">Geometrie-gekoppelter Section-Editor folgt</text></svg></div>
+</section>
+</main>
 <script>
-const svg=document.getElementById('svg'),lenEl=document.getElementById('length'),widEl=document.getElementById('width'),status=document.getElementById('status');
-let model={name:'Wingfoil Board Outline',length_mm:1600,width_mm:520,anchors:[
-{id:'a1',x:450,y:65,ix:450,iy:65,ox:450,oy:65,mode:'smooth'},
-{id:'a2',x:660,y:210,ix:615,iy:145,ox:705,oy:280,mode:'smooth'},
-{id:'a3',x:610,y:430,ix:690,iy:385,ox:540,oy:475,mode:'smooth'},
-{id:'a4',x:450,y:530,ix:500,iy:500,ox:400,oy:500,mode:'smooth'},
-{id:'a5',x:290,y:430,ix:360,iy:475,ox:210,oy:385,mode:'smooth'},
-{id:'a6',x:240,y:210,ix:195,iy:280,ox:285,oy:145,mode:'smooth'},
-{id:'a7',x:450,y:65,ix:450,iy:65,ox:450,oy:65,mode:'smooth'}]};
-let selected=1,drag=null,undoStack=[],redoStack=[];
-const snapshot=()=>JSON.stringify(model);
-function restore(s){model=JSON.parse(s);draw()}
-function bez(a,b){return 'M '+a.x+' '+a.y+' C '+a.ox+' '+a.oy+', '+b.ix+' '+b.iy+', '+b.x+' '+b.y}
-function draw(){model.length_mm=Number(lenEl.value)||1600;model.width_mm=Number(widEl.value)||520;let paths='',hmarkup='',amarkup='';
-for(let i=0;i<model.anchors.length-1;i++){paths+='<path class="curve" d="'+bez(model.anchors[i],model.anchors[i+1])+'"/>'}
-model.anchors.forEach((a,i)=>{if(i>0&&i<model.anchors.length-1){hmarkup+='<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ix+'" y2="'+a.iy+'"/><line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ox+'" y2="'+a.oy+'"/><circle class="handle" data-type="in" data-i="'+i+'" cx="'+a.ix+'" cy="'+a.iy+'" r="7"/><circle class="handle" data-type="out" data-i="'+i+'" cx="'+a.ox+'" cy="'+a.oy+'" r="7"/>'}amarkup+='<circle class="anchor '+(i===selected?'selected':'')+'" data-type="anchor" data-i="'+i+'" cx="'+a.x+'" cy="'+a.y+'" r="8"/>'});
-let polygon='M '+model.anchors[0].x+' '+model.anchors[0].y;for(let i=1;i<model.anchors.length;i++)polygon+=' L '+model.anchors[i].x+' '+model.anchors[i].y;polygon+=' Z';
-svg.innerHTML='<path id="outline" d="'+polygon+'"/>'+paths+hmarkup+amarkup;status.textContent=(model.anchors.length-1)+' Kurvenanker · ausgewählt: '+(selected+1)+' · '+(model.anchors[selected]?.mode||'—');document.getElementById('corner').textContent='Modus: '+(model.anchors[selected]?.mode||'smooth');document.getElementById('del').disabled=selected===0||selected===model.anchors.length-1;document.getElementById('undo').disabled=!undoStack.length;document.getElementById('redo').disabled=!redoStack.length}
-function coords(evt){let r=svg.getBoundingClientRect();return{x:(evt.clientX-r.left)*900/r.width,y:(evt.clientY-r.top)*600/r.height}}
-svg.addEventListener('pointerdown',e=>{let t=e.target.closest('[data-type]');if(!t)return;let i=+t.dataset.i;selected=i;undoStack.push(snapshot());if(undoStack.length>80)undoStack.shift();redoStack=[];drag={i,type:t.dataset.type,p:coords(e)};svg.setPointerCapture(e.pointerId);draw()});
-svg.addEventListener('pointermove',e=>{if(!drag)return;let p=coords(e),dx=p.x-drag.p.x,dy=p.y-drag.p.y,a=model.anchors[drag.i];if(drag.type==='anchor'){a.x+=dx;a.y+=dy;a.ix+=dx;a.iy+=dy;a.ox+=dx;a.oy+=dy}else{let h=drag.type==='in'?'i':'o';a[h+'x']+=dx;a[h+'y']+=dy;if(a.mode!=='corner'){let other=h==='i'?'o':'i',vx=a[h+'x']-a.x,vy=a[h+'y']-a.y,d=Math.hypot(vx,vy)||1,ol=a.mode==='symmetric'?d:Math.hypot(a[other+'x']-a.x,a[other+'y']-a.y);a[other+'x']=a.x-vx/d*ol;a[other+'y']=a.y-vy/d*ol}}drag.p=p;draw()});
-svg.addEventListener('pointerup',()=>drag=null);svg.addEventListener('pointercancel',()=>drag=null);
-document.getElementById('add').onclick=()=>{undoStack.push(snapshot());redoStack=[];let seg=0,best=0;for(let i=0;i<model.anchors.length-1;i++){let p=model.anchors[i],q=model.anchors[i+1],d=Math.hypot(q.x-p.x,q.y-p.y);if(d>best){best=d;seg=i}}let a=model.anchors[seg],b=model.anchors[seg+1],p0={x:a.x,y:a.y},p1={x:a.ox,y:a.oy},p2={x:b.ix,y:b.iy},p3={x:b.x,y:b.y};const mid=(u,v)=>({x:(u.x+v.x)/2,y:(u.y+v.y)/2});let q0=mid(p0,p1),q1=mid(p1,p2),q2=mid(p2,p3),r0=mid(q0,q1),r1=mid(q1,q2),s=mid(r0,r1);a.ox=q0.x;a.oy=q0.y;b.ix=q2.x;b.iy=q2.y;let n={id:'a'+Date.now(),x:s.x,y:s.y,ix:r0.x,iy:r0.y,ox:r1.x,oy:r1.y,mode:'smooth'};model.anchors.splice(seg+1,0,n);selected=seg+1;draw()};
-document.getElementById('del').onclick=()=>{if(selected===0||selected===model.anchors.length-1)return;undoStack.push(snapshot());redoStack=[];model.anchors.splice(selected,1);selected=Math.max(1,selected-1);draw()};
-document.getElementById('corner').onclick=()=>{undoStack.push(snapshot());redoStack=[];let a=model.anchors[selected];a.mode=a.mode==='corner'?'smooth':a.mode==='smooth'?'symmetric':'corner';if(a.mode==='symmetric'){let dx=a.ox-a.x,dy=a.oy-a.y,l=Math.hypot(dx,dy)||1;a.ix=a.x-dx/l*l;a.iy=a.y-dy/l*l}else if(a.mode==='smooth'){let dx=a.ox-a.x,dy=a.oy-a.y,l=Math.hypot(dx,dy)||1,li=Math.hypot(a.ix-a.x,a.iy-a.y);a.ix=a.x-dx/l*li;a.iy=a.y-dy/l*li}draw()};
-document.getElementById('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop())};document.getElementById('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop())};
-document.getElementById('reset').onclick=()=>{if(confirm('Prototyp zurücksetzen?'))location.reload()};lenEl.onchange=widEl.onchange=()=>draw();
-document.getElementById('export').onclick=()=>{let data={...model,editor_version:'0.1-prototype',curve_type:'bezier_chain',anchors:model.anchors.map(a=>({id:a.id,position:[a.x,a.y],incoming_handle:[a.ix,a.iy],outgoing_handle:[a.ox,a.oy],continuity:a.mode}))};let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='surfwing-outline.json';link.click();URL.revokeObjectURL(url)};
-document.getElementById('import').onclick=()=>document.getElementById('file').click();document.getElementById('file').onchange=e=>{let f=e.target.files[0];if(!f)return;let reader=new FileReader();reader.onload=()=>{try{let d=JSON.parse(reader.result);if(!Array.isArray(d.anchors)||d.anchors.length<3)throw Error('anchors fehlen');undoStack.push(snapshot());redoStack=[];model={...model,...d,anchors:d.anchors.map((a,i)=>({id:a.id||'import'+i,x:a.position?.[0]??a.x,y:a.position?.[1]??a.y,ix:a.incoming_handle?.[0]??a.ix,iy:a.incoming_handle?.[1]??a.iy,ox:a.outgoing_handle?.[0]??a.ox,oy:a.outgoing_handle?.[1]??a.oy,mode:a.continuity||a.mode||'smooth'}))};selected=1;lenEl.value=model.length_mm||1600;widEl.value=model.width_mm||520;draw()}catch(err){alert('Importfehler: '+err.message)}};reader.readAsText(f)};draw();
-</script></body></html>
+const svg=document.getElementById('svg');
+const lengthInput=document.getElementById('length');
+const widthInput=document.getElementById('width');
+const toleranceInput=document.getElementById('tolerance');
+const statusEl=document.getElementById('status');
+const feedbackEl=document.getElementById('feedback');
+let idCounter=7;
+function fromOld(px,py,w,l){return {x:(px-450)*(w/420),y:(py-297.5)*(l/465)}}
+function anchor(id,pos,inP,outP,mode){return {id:id,x:pos.x,y:pos.y,ix:inP.x,iy:inP.y,ox:outP.x,oy:outP.y,mode:mode}}
+function makeInitialModel(){
+ const w=520,l=1600,pt=(x,y)=>fromOld(x,y,w,l);
+ const raw=[
+  ['nose',[450,65],[450,65],[450,65],'corner'],
+  ['starboard-shoulder',[660,210],[615,145],[705,280],'smooth'],
+  ['starboard-rail',[610,430],[690,385],[540,475],'smooth'],
+  ['tail',[450,530],[500,500],[400,500],'smooth'],
+  ['port-rail',[290,430],[360,475],[210,385],'smooth'],
+  ['port-shoulder',[240,210],[195,280],[285,145],'smooth']
+ ];
+ return {name:'Wingfoil Board Outline',length_mm:l,width_mm:w,units:'mm',closed:true,anchors:raw.map(r=>anchor(r[0],pt(r[1][0],r[1][1]),pt(r[2][0],r[2][1]),pt(r[3][0],r[3][1]),r[4]))};
+}
+let model=makeInitialModel(),selected=0,drag=null,undoStack=[],redoStack=[];
+function state(){return JSON.stringify({model:model,selected:selected})}
+function pushUndo(){undoStack.push(state());if(undoStack.length>100)undoStack.shift();redoStack=[]}
+function restoreState(s){const v=JSON.parse(s);model=v.model;selected=Math.min(v.selected,model.anchors.length-1);lengthInput.value=model.length_mm;widthInput.value=model.width_mm;draw()}
+function point(x,y){return {x:x,y:y}}
+function lerp(a,b,t){return point(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t)}
+function bezier(p0,p1,p2,p3,t){
+ const u=1-t,uu=u*u,tt=t*t;
+ return point(uu*u*p0.x+3*uu*t*p1.x+3*u*tt*p2.x+tt*t*p3.x,uu*u*p0.y+3*uu*t*p1.y+3*u*tt*p2.y+tt*t*p3.y);
+}
+function segmentPoints(a,b){return [point(a.x,a.y),point(a.ox,a.oy),point(b.ix,b.iy),point(b.x,b.y)]}
+function segmentLength(a,b){const p=segmentPoints(a,b);let total=0,last=p[0];for(let j=1;j<=30;j++){const v=bezier(p[0],p[1],p[2],p[3],j/30);total+=Math.hypot(v.x-last.x,v.y-last.y);last=v}return total}
+function pathData(){
+ const a=model.anchors;let d='M '+a[0].x+' '+a[0].y;
+ for(let i=0;i<a.length;i++){const b=a[(i+1)%a.length];d+=' C '+a[i].ox+' '+a[i].oy+', '+b.ix+' '+b.iy+', '+b.x+' '+b.y}
+ return d+' Z';
+}
+function draw(){
+ const margin=Math.max(60,Math.max(model.width_mm,model.length_mm)*0.06);
+ svg.setAttribute('viewBox',(-model.width_mm/2-margin)+' '+(-model.length_mm/2-margin)+' '+(model.width_mm+2*margin)+' '+(model.length_mm+2*margin));
+ const handles=[],nodes=[];
+ model.anchors.forEach((a,i)=>{
+  handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ix+'" y2="'+a.iy+'"/>');
+  handles.push('<line class="handle-line" x1="'+a.x+'" y1="'+a.y+'" x2="'+a.ox+'" y2="'+a.oy+'"/>');
+  handles.push('<circle class="handle" data-type="in" data-i="'+i+'" cx="'+a.ix+'" cy="'+a.iy+'" r="18"/>');
+  handles.push('<circle class="handle" data-type="out" data-i="'+i+'" cx="'+a.ox+'" cy="'+a.oy+'" r="18"/>');
+  nodes.push('<circle class="anchor '+(i===selected?'selected':'')+'" data-type="anchor" data-i="'+i+'" cx="'+a.x+'" cy="'+a.y+'" r="25"/>');
+ });
+ const centerline='<line class="centerline" x1="0" y1="'+(-model.length_mm/2)+'" x2="0" y2="'+(model.length_mm/2)+'"/>';
+ svg.innerHTML=centerline+'<path class="board-fill" d="'+pathData()+'"/>'+handles.join('')+nodes.join('');
+ const a=model.anchors[selected];
+ statusEl.textContent=model.anchors.length+' Kontrollpunkte · ausgewählt: '+a.id+' · '+a.mode+' · '+model.length_mm+' × '+model.width_mm+' mm';
+ document.getElementById('mode').textContent='Modus: '+a.mode;
+ document.getElementById('del').disabled=model.anchors.length<=3;
+ document.getElementById('undo').disabled=!undoStack.length;
+ document.getElementById('redo').disabled=!redoStack.length;
+}
+function svgCoordinates(evt){
+ const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;
+ const q=p.matrixTransform(svg.getScreenCTM().inverse());return point(q.x,q.y);
+}
+function setMode(a,newMode){
+ a.mode=newMode;
+ if(newMode==='smooth'||newMode==='symmetric'){
+  let dx=a.ox-a.x,dy=a.oy-a.y,l=Math.hypot(dx,dy);
+  if(l<1e-9){dx=1;dy=0;l=1}
+  const opposite=newMode==='symmetric'?l:Math.hypot(a.ix-a.x,a.iy-a.y);
+  a.ix=a.x-dx/l*opposite;a.iy=a.y-dy/l*opposite;
+ }
+}
+svg.addEventListener('pointerdown',evt=>{
+ const target=evt.target.closest('[data-type]');if(!target)return;
+ selected=Number(target.dataset.i);pushUndo();
+ drag={i:selected,type:target.dataset.type,last:svgCoordinates(evt)};
+ svg.setPointerCapture(evt.pointerId);draw();
+});
+svg.addEventListener('pointermove',evt=>{
+ if(!drag)return;
+ const now=svgCoordinates(evt),dx=now.x-drag.last.x,dy=now.y-drag.last.y,a=model.anchors[drag.i];
+ if(drag.type==='anchor'){a.x+=dx;a.y+=dy;a.ix+=dx;a.iy+=dy;a.ox+=dx;a.oy+=dy}
+ else{
+  const h=drag.type==='in'?'i':'o',other=h==='i'?'o':'i';
+  a[h+'x']+=dx;a[h+'y']+=dy;
+  if(a.mode!=='corner'){
+   const vx=a[h+'x']-a.x,vy=a[h+'y']-a.y,d=Math.hypot(vx,vy)||1;
+   const otherLength=a.mode==='symmetric'?d:Math.hypot(a[other+'x']-a.x,a[other+'y']-a.y);
+   a[other+'x']=a.x-vx/d*otherLength;a[other+'y']=a.y-vy/d*otherLength;
+  }
+ }
+ drag.last=now;draw();
+});
+svg.addEventListener('pointerup',()=>{drag=null});
+svg.addEventListener('pointercancel',()=>{drag=null});
+function splitSegmentAtHalf(a,b){
+ const p=segmentPoints(a,b),q0=lerp(p[0],p[1],.5),q1=lerp(p[1],p[2],.5),q2=lerp(p[2],p[3],.5);
+ const r0=lerp(q0,q1,.5),r1=lerp(q1,q2,.5),s=lerp(r0,r1,.5);
+ a.ox=q0.x;a.oy=q0.y;b.ix=q2.x;b.iy=q2.y;
+ return anchor('cp-'+(idCounter++),s,r0,r1,'smooth');
+}
+document.getElementById('add').onclick=()=>{
+ let best=-1,bestLength=-1;
+ for(let i=0;i<model.anchors.length;i++){const n=(i+1)%model.anchors.length,l=segmentLength(model.anchors[i],model.anchors[n]);if(l>bestLength){bestLength=l;best=i}}
+ pushUndo();const next=(best+1)%model.anchors.length;
+ const inserted=splitSegmentAtHalf(model.anchors[best],model.anchors[next]);
+ model.anchors.splice(best+1,0,inserted);selected=best+1;feedbackEl.textContent='Kontrollpunkt exakt bei t = 0,5 eingefügt; beide Teilkurven bilden zusammen dieselbe ursprüngliche Bézier-Kurve.';draw();
+};
+function fitMergedCurve(prev,removed,next){
+ const p0=point(prev.x,prev.y),p3=point(next.x,next.y);
+ const first=segmentPoints(prev,removed),second=segmentPoints(removed,next);
+ let saa=0,sab=0,sbb=0,sax=0,sbx=0,say=0,sby=0;
+ const samples=160;
+ for(let k=1;k<samples;k++){
+  const u=k/samples,target=u<.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
+  const v=1-u,A=3*v*v*u,B=3*v*u*u;
+  const base=point(v*v*v*p0.x+u*u*u*p3.x,v*v*v*p0.y+u*u*u*p3.y);
+  const rx=target.x-base.x,ry=target.y-base.y;
+  saa+=A*A;sab+=A*B;sbb+=B*B;sax+=A*rx;sbx+=B*rx;say+=A*ry;sby+=B*ry;
+ }
+ const det=saa*sbb-sab*sab;
+ if(Math.abs(det)<1e-12)return null;
+ const c1=point((sax*sbb-sbx*sab)/det,(say*sbb-sby*sab)/det);
+ const c2=point((sbx*saa-sax*sab)/det,(sby*saa-say*sab)/det);
+ let max=0,sum=0,count=201;
+ for(let k=0;k<count;k++){
+  const u=k/(count-1),target=u<=.5?bezier(first[0],first[1],first[2],first[3],u*2):bezier(second[0],second[1],second[2],second[3],(u-.5)*2);
+  const fitted=bezier(p0,c1,c2,p3,u),err=Math.hypot(target.x-fitted.x,target.y-fitted.y);
+  max=Math.max(max,err);sum+=err*err;
+ }
+ return {c1:c1,c2:c2,max:max,rms:Math.sqrt(sum/count)};
+}
+document.getElementById('del').onclick=()=>{
+ if(model.anchors.length<=3){feedbackEl.textContent='Mindestens drei Kontrollpunkte müssen erhalten bleiben.';return}
+ const i=selected,n=model.anchors.length,prev=model.anchors[(i+n-1)%n],removed=model.anchors[i],next=model.anchors[(i+1)%n];
+ const fit=fitMergedCurve(prev,removed,next),tol=Number(toleranceInput.value);
+ if(!fit){feedbackEl.textContent='Löschen abgebrochen: Kurvenanpassung numerisch nicht stabil.';return}
+ if(fit.max>tol+1e-8){feedbackEl.textContent='Nicht gelöscht: maximale Abweichung '+fit.max.toFixed(2)+' mm (RMS '+fit.rms.toFixed(2)+' mm) liegt über der Toleranz von '+tol.toFixed(2)+' mm. Toleranz erhöhen oder einen anderen Punkt wählen.';return}
+ pushUndo();prev.ox=fit.c1.x;prev.oy=fit.c1.y;next.ix=fit.c2.x;next.iy=fit.c2.y;
+ model.anchors.splice(i,1);selected=i===0?model.anchors.length-1:i-1;
+ feedbackEl.textContent='Punkt gelöscht. Anpassungsfehler: max. '+fit.max.toFixed(3)+' mm, RMS '+fit.rms.toFixed(3)+' mm (Grenze '+tol.toFixed(2)+' mm).';draw();
+};
+document.getElementById('mode').onclick=()=>{
+ pushUndo();const a=model.anchors[selected],next=a.mode==='corner'?'smooth':a.mode==='smooth'?'symmetric':'corner';setMode(a,next);
+ feedbackEl.textContent='Kontinuitätsmodus geändert: '+next+'.';draw();
+};
+function changeDimensions(){
+ const newL=Math.max(500,Math.min(4000,Number(lengthInput.value)||model.length_mm));
+ const newW=Math.max(100,Math.min(1200,Number(widthInput.value)||model.width_mm));
+ if(newL===model.length_mm&&newW===model.width_mm)return;
+ pushUndo();const sx=newW/model.width_mm,sy=newL/model.length_mm;
+ model.anchors.forEach(a=>{a.x*=sx;a.ox*=sx;a.ix*=sx;a.y*=sy;a.oy*=sy;a.iy*=sy});
+ model.width_mm=newW;model.length_mm=newL;lengthInput.value=newL;widthInput.value=newW;
+ feedbackEl.textContent='Geometrie proportional skaliert; alle Anker und Griffe bleiben in mm definiert.';draw();
+}
+lengthInput.onchange=changeDimensions;widthInput.onchange=changeDimensions;
+document.getElementById('undo').onclick=()=>{if(!undoStack.length)return;redoStack.push(state());restoreState(undoStack.pop())};
+document.getElementById('redo').onclick=()=>{if(!redoStack.length)return;undoStack.push(state());restoreState(redoStack.pop())};
+document.getElementById('reset').onclick=()=>{if(!confirm('Boardkontur auf Startwerte zurücksetzen?'))return;pushUndo();model=makeInitialModel();selected=0;lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Startkontur wiederhergestellt.';draw()};
+document.getElementById('export').onclick=()=>{
+ const data={document_type:'surfwing.outline',schema_version:'0.2.0',name:model.name,units:'mm',closed:true,length_mm:model.length_mm,width_mm:model.width_mm,anchors:model.anchors.map(a=>({id:a.id,position:[a.x,a.y],incoming_handle:[a.ix,a.iy],outgoing_handle:[a.ox,a.oy],continuity:a.mode}))};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download='surfwing-outline-mm.json';link.click();URL.revokeObjectURL(url);
+};
+document.getElementById('import').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=evt=>{
+ const file=evt.target.files[0];if(!file)return;
+ const reader=new FileReader();reader.onload=()=>{
+  try{
+   const data=JSON.parse(reader.result);if(!Array.isArray(data.anchors)||data.anchors.length<3)throw new Error('Mindestens drei Anker erforderlich.');
+   if(data.units!=='mm')throw new Error('Import erwartet Koordinaten in Millimetern (units = mm).');
+   const imported=data.anchors.map((a,i)=>{
+    const values=[...(a.position||[]),...(a.incoming_handle||[]),...(a.outgoing_handle||[])];
+    if(values.length!==6||!values.every(Number.isFinite))throw new Error('Ungültige Koordinaten bei Anker '+i+'.');
+    return anchor(String(a.id||('import-'+i)),point(a.position[0],a.position[1]),point(a.incoming_handle[0],a.incoming_handle[1]),point(a.outgoing_handle[0],a.outgoing_handle[1]),['corner','smooth','symmetric'].includes(a.continuity)?a.continuity:'corner');
+   });
+   pushUndo();model={name:data.name||'Imported board',units:'mm',closed:true,length_mm:Number(data.length_mm)||1600,width_mm:Number(data.width_mm)||520,anchors:imported};
+   selected=0;lengthInput.value=model.length_mm;widthInput.value=model.width_mm;feedbackEl.textContent='Kontur aus JSON geladen.';draw();
+  }catch(err){feedbackEl.textContent='Importfehler: '+err.message}
+ };
+ reader.readAsText(file);evt.target.value='';
+};
+draw();
+</script>
+</body></html>
