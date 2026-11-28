@@ -16,7 +16,7 @@ function createHarness(tolerance = '1.0') {
   function element(id) {
     if (!elements.has(id)) elements.set(id, {
       value: id === 'length' ? '1600' : id === 'width' ? '520' : id === 'tolerance' ? tolerance : '',
-      disabled: false, onclick: null, onchange: null, textContent: '', addEventListener() {}
+      disabled: false, onclick: null, onchange: null, textContent: '', className: '', addEventListener() {}
     });
     return elements.get(id);
   }
@@ -31,7 +31,7 @@ function createHarness(tolerance = '1.0') {
   const document = { getElementById(id) { return id === 'svg' ? svg : element(id); } };
   const context = vm.createContext({ document, confirm: () => true });
   new vm.Script(source, { filename: 'board-outline-editor.js' }).runInContext(context);
-  return { context, svg, listeners, element, model: () => vm.runInContext('model', context), selected: () => vm.runInContext('selected', context) };
+  return { context, svg, listeners, element, model: () => vm.runInContext('model', context), selected: () => vm.runInContext('selected', context), validate: () => vm.runInContext('validateOutline()', context), redraw: () => vm.runInContext('draw()', context) };
 }
 
 function cubic(p0, p1, p2, p3, t) {
@@ -166,4 +166,43 @@ test('zoom buttons, fit view and blank-canvas panning update the viewport', () =
   const wheelZoom = app.svg.attributes.viewBox.split(' ').map(Number);
   assert.equal(prevented, true);
   assert.ok(wheelZoom[2] < panned[2]);
+});
+
+
+test('starter outline exterior dimensions match declared 1600 x 520 mm', () => {
+  const app = createHarness();
+  const result = app.validate();
+  assert.equal(result.valid, true, result.reason);
+  assert.ok(Math.abs(result.bounds.maxY - result.bounds.minY - 1600) < 1e-6);
+  assert.ok(Math.abs(result.bounds.maxX - result.bounds.minX - 520) < 1e-6);
+  assert.match(app.svg.innerHTML, /1600\.0 mm/);
+  assert.match(app.svg.innerHTML, /520\.0 mm/);
+});
+
+test('self-intersecting outlines are marked invalid and block JSON export', () => {
+  const app = createHarness();
+  app.model().anchors = [
+    {id:'p1',x:-100,y:-100,ix:-100,iy:-100,ox:-100,oy:-100,mode:'corner'},
+    {id:'p2',x:100,y:100,ix:100,iy:100,ox:100,oy:100,mode:'corner'},
+    {id:'p3',x:-100,y:100,ix:-100,iy:100,ox:-100,oy:100,mode:'corner'},
+    {id:'p4',x:100,y:-100,ix:100,iy:-100,ox:100,oy:-100,mode:'corner'}
+  ];
+  app.redraw();
+  const validation = app.validate();
+  assert.equal(validation.valid, false);
+  assert.match(validation.reason, /Selbstüberschneidung/);
+  assert.match(app.element('integrity').textContent, /Kontur ungültig/);
+  assert.equal(app.element('export').disabled, true);
+});
+
+test('adjacent duplicate anchors are rejected as degenerate geometry', () => {
+  const app = createHarness();
+  const anchors = app.model().anchors;
+  anchors[1].x = anchors[0].x;
+  anchors[1].y = anchors[0].y;
+  const validation = app.validate();
+  assert.equal(validation.valid, false);
+  assert.match(validation.reason, /übereinander/);
+  app.redraw();
+  assert.equal(app.element('export').disabled, true);
 });
